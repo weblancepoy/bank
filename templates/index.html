@@ -1,0 +1,829 @@
+<!-- file: templates/index.html -->
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart E-Banking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .sidebar-item {
+        transition: all 0.2s ease-in-out;
+      }
+      .sidebar-item:hover,
+      .sidebar-item.active {
+        background-color: #2563eb; /* hover:bg-blue-600 */
+        color: white;
+      }
+      .form-input {
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        transition: all 0.2s ease;
+      }
+      .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: white;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+      .btn-primary:hover {
+        background-color: #2563eb;
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="h-full">
+    <div id="app" class="h-full">
+      <!-- Login/Register Section -->
+      <div
+        id="auth-view"
+        class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50"
+      >
+        <div class="max-w-md w-full space-y-8">
+          <div>
+            <svg
+              class="mx-auto h-12 w-auto text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01M12 6v-1h4v1m-4 0H8v1h4v-1z M6 12a6 6 0 1112 0A6 6 0 016 12z"
+              />
+            </svg>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Smart E-Banking
+            </h2>
+          </div>
+          <div class="bg-white p-8 rounded-2xl shadow-lg">
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-6">
+              <input
+                type="text"
+                id="login-username"
+                class="form-input"
+                placeholder="Username"
+                required
+              />
+              <input
+                type="password"
+                id="login-password"
+                class="form-input"
+                placeholder="Password"
+                required
+              />
+              <button type="submit" class="w-full btn btn-primary">
+                Sign in
+              </button>
+              <p id="login-error" class="text-center text-sm text-red-500"></p>
+            </form>
+            <div class="mt-4 text-center text-sm">
+              <a
+                href="#"
+                id="show-register"
+                class="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Don't have an account? Register
+              </a>
+            </div>
+          </div>
+          <!-- Register Form (hidden by default) -->
+          <div
+            id="register-container"
+            class="hidden bg-white p-8 rounded-2xl shadow-lg"
+          >
+            <form id="register-form" class="space-y-6">
+              <input
+                type="text"
+                id="register-username"
+                class="form-input"
+                placeholder="Username"
+                required
+              />
+              <input
+                type="email"
+                id="register-email"
+                class="form-input"
+                placeholder="Email"
+                required
+              />
+              <input
+                type="password"
+                id="register-password"
+                class="form-input"
+                placeholder="Password"
+                required
+              />
+              <button type="submit" class="w-full btn btn-primary">
+                Register
+              </button>
+              <p id="register-message" class="text-center text-sm"></p>
+            </form>
+            <div class="mt-4 text-center text-sm">
+              <a
+                href="#"
+                id="show-login"
+                class="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Already have an account? Sign in
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="h-full hidden">
+        <div class="flex h-full">
+          <!-- Sidebar -->
+          <nav class="w-64 bg-gray-800 text-white flex flex-col">
+            <div class="p-6 text-2xl font-bold border-b border-gray-700">
+              SmartBank
+            </div>
+            <ul class="flex-grow p-4">
+              <li>
+                <a
+                  href="#dashboard"
+                  class="sidebar-item active flex items-center p-3 rounded-lg"
+                  data-view="dashboard-content"
+                >
+                  <svg
+                    class="w-6 h-6 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    /></svg
+                  >Dashboard</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#transactions"
+                  class="sidebar-item flex items-center p-3 rounded-lg"
+                  data-view="transactions-content"
+                >
+                  <svg
+                    class="w-6 h-6 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    /></svg
+                  >Transactions</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#billpay"
+                  class="sidebar-item flex items-center p-3 rounded-lg"
+                  data-view="billpay-content"
+                >
+                  <svg
+                    class="w-6 h-6 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 8h6m-5 4h5m2 5H8a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                    /></svg
+                  >Bill Pay</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#profile"
+                  class="sidebar-item flex items-center p-3 rounded-lg"
+                  data-view="profile-content"
+                >
+                  <svg
+                    class="w-6 h-6 mr-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    /></svg
+                  >Profile</a
+                >
+              </li>
+            </ul>
+            <div class="p-4 border-t border-gray-700">
+              <button
+                id="logout-btn"
+                class="w-full flex items-center p-3 rounded-lg hover:bg-red-500"
+              >
+                <svg
+                  class="w-6 h-6 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  /></svg
+                >Logout
+              </button>
+            </div>
+          </nav>
+
+          <!-- Main Content -->
+          <main class="flex-1 bg-gray-100 p-8 overflow-y-auto">
+            <!-- Dashboard Content -->
+            <div id="dashboard-content" class="view-content fade-in">
+              <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                Welcome Back, <span id="dashboard-username"></span>!
+              </h1>
+              <p class="text-gray-500 mb-8">
+                Here's your financial overview for today.
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Left Column -->
+                <div class="md:col-span-2 space-y-8">
+                  <!-- Account Balance Card -->
+                  <div class="bg-white p-6 rounded-2xl shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-600 mb-1">
+                      Total Balance
+                    </h3>
+                    <p
+                      id="account-balance"
+                      class="text-4xl font-bold text-gray-800"
+                    >
+                      $0.00
+                    </p>
+                    <p class="text-gray-500 mt-2">
+                      Account:
+                      <span id="account-number" class="font-medium"></span>
+                    </p>
+                  </div>
+                  <!-- Quick Transfer -->
+                  <div class="bg-white p-6 rounded-2xl shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-600 mb-4">
+                      Quick Transfer
+                    </h3>
+                    <form
+                      id="transaction-form"
+                      class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end"
+                    >
+                      <div class="sm:col-span-1">
+                        <label
+                          for="to-account"
+                          class="text-sm font-medium text-gray-700"
+                          >Recipient Account</label
+                        >
+                        <input
+                          type="text"
+                          id="to-account"
+                          class="form-input mt-1"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          for="amount"
+                          class="text-sm font-medium text-gray-700"
+                          >Amount</label
+                        >
+                        <input
+                          type="number"
+                          id="amount"
+                          class="form-input mt-1"
+                          step="0.01"
+                          min="0.01"
+                          required
+                        />
+                      </div>
+                      <button type="submit" class="btn btn-primary h-12">
+                        Send Money
+                      </button>
+                    </form>
+                    <p id="transaction-message" class="text-sm mt-4"></p>
+                  </div>
+                </div>
+                <!-- Right Column -->
+                <div class="bg-white p-6 rounded-2xl shadow-md">
+                  <h3 class="text-lg font-semibold text-gray-600 mb-4">
+                    Spending Insights
+                  </h3>
+                  <canvas id="spending-chart"></canvas>
+                  <p
+                    id="spending-chart-fallback"
+                    class="text-center text-gray-500 hidden"
+                  >
+                    No spending data available to display insights.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transactions Content -->
+            <div id="transactions-content" class="view-content hidden fade-in">
+              <h1 class="text-3xl font-bold text-gray-800 mb-8">
+                Transaction History
+              </h1>
+              <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                <table class="min-w-full">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th
+                        class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Type
+                      </th>
+                      <th
+                        class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Amount
+                      </th>
+                      <th
+                        class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="transaction-history"
+                    class="divide-y divide-gray-200"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Bill Pay Content -->
+            <div id="billpay-content" class="view-content hidden fade-in">
+              <h1 class="text-3xl font-bold text-gray-800 mb-8">
+                Bill Payments
+              </h1>
+              <div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-md">
+                <h3 class="text-lg font-semibold text-gray-600 mb-4">
+                  Pay a Bill
+                </h3>
+                <form id="billpay-form" class="space-y-4">
+                  <div>
+                    <label
+                      for="biller-select"
+                      class="text-sm font-medium text-gray-700"
+                      >Select Biller</label
+                    >
+                    <select
+                      id="biller-select"
+                      class="form-input mt-1"
+                      required
+                    ></select>
+                  </div>
+                  <div>
+                    <label
+                      for="bill-amount"
+                      class="text-sm font-medium text-gray-700"
+                      >Amount</label
+                    >
+                    <input
+                      type="number"
+                      id="bill-amount"
+                      class="form-input mt-1"
+                      step="0.01"
+                      min="0.01"
+                      required
+                    />
+                  </div>
+                  <button type="submit" class="w-full btn btn-primary">
+                    Pay Now
+                  </button>
+                </form>
+                <p id="billpay-message" class="text-sm mt-4 text-center"></p>
+              </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div id="profile-content" class="view-content hidden fade-in">
+              <h1 class="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
+              <div
+                class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-md space-y-4"
+              >
+                <div>
+                  <label class="text-sm font-medium text-gray-500"
+                    >Username</label
+                  >
+                  <p
+                    id="profile-username"
+                    class="text-lg font-semibold text-gray-800"
+                  ></p>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-500"
+                    >Email Address</label
+                  >
+                  <p
+                    id="profile-email"
+                    class="text-lg font-semibold text-gray-800"
+                  ></p>
+                </div>
+                <div>
+                  <label class="text-sm font-medium text-gray-500"
+                    >Member Since</label
+                  >
+                  <p
+                    id="profile-member-since"
+                    class="text-lg font-semibold text-gray-800"
+                  ></p>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- State Management ---
+      const state = {
+        token: localStorage.getItem("token"),
+        user: JSON.parse(localStorage.getItem("user")),
+        account: null,
+        currentView: "dashboard-content",
+        spendingChart: null,
+      };
+
+      // --- DOM Elements ---
+      const authView = document.getElementById("auth-view");
+      const dashboardView = document.getElementById("dashboard-view");
+      const loginForm = document.getElementById("login-form");
+      const registerForm = document.getElementById("register-form");
+      const transactionForm = document.getElementById("transaction-form");
+      const billpayForm = document.getElementById("billpay-form");
+      const logoutBtn = document.getElementById("logout-btn");
+      const sidebarItems = document.querySelectorAll(".sidebar-item");
+      const contentPages = document.querySelectorAll(".view-content");
+
+      // --- API Helper ---
+      async function apiRequest(endpoint, method = "GET", body = null) {
+        const headers = { "Content-Type": "application/json" };
+        if (state.token) headers["x-access-token"] = state.token;
+        try {
+          const response = await fetch(`/api${endpoint}`, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : null,
+          });
+          const data = await response.json();
+          if (response.status === 401) handleLogout(); // Token expired or invalid
+          return { ok: response.ok, status: response.status, data };
+        } catch (error) {
+          console.error("API Error:", error);
+          return { ok: false, data: { message: "Network error." } };
+        }
+      }
+
+      // --- View & UI Management ---
+      function navigateTo(viewId) {
+        contentPages.forEach((page) => page.classList.add("hidden"));
+        document.getElementById(viewId)?.classList.remove("hidden");
+
+        sidebarItems.forEach((item) => {
+          item.classList.toggle("active", item.dataset.view === viewId);
+        });
+        state.currentView = viewId;
+        // Fetch data for the new view if needed
+        if (viewId === "transactions-content") fetchTransactions();
+        if (viewId === "billpay-content") fetchBillers();
+        if (viewId === "profile-content") fetchProfile();
+      }
+
+      function showDashboardView() {
+        authView.classList.add("hidden");
+        dashboardView.classList.remove("hidden");
+        document.getElementById("dashboard-username").textContent =
+          state.user.username;
+        fetchDashboardData();
+        navigateTo("dashboard-content");
+      }
+
+      function showAuthView() {
+        authView.classList.remove("hidden");
+        dashboardView.classList.add("hidden");
+        localStorage.clear();
+        state.token = null;
+        state.user = null;
+        state.account = null;
+      }
+
+      function showMessage(elementId, message, isError = false) {
+        const el = document.getElementById(elementId);
+        el.textContent = message;
+        el.className = isError
+          ? "text-red-500 text-sm mt-4"
+          : "text-green-600 text-sm mt-4";
+        setTimeout(() => (el.textContent = ""), 4000);
+      }
+
+      // --- Data Population ---
+      function populateAccountDetails() {
+        if (!state.account) return;
+        document.getElementById("account-number").textContent =
+          state.account.account_number;
+        document.getElementById("account-balance").textContent = `$${parseFloat(
+          state.account.balance
+        ).toFixed(2)}`;
+      }
+
+      function populateProfile(profile) {
+        document.getElementById("profile-username").textContent =
+          profile.username;
+        document.getElementById("profile-email").textContent = profile.email;
+        document.getElementById("profile-member-since").textContent = new Date(
+          profile.member_since
+        ).toLocaleDateString();
+      }
+
+      function populateTransactionHistory(transactions) {
+        const historyBody = document.getElementById("transaction-history");
+        historyBody.innerHTML = "";
+        if (transactions.length === 0) {
+          historyBody.innerHTML =
+            '<tr><td colspan="4" class="text-center p-6 text-gray-500">No transactions yet.</td></tr>';
+          return;
+        }
+
+        transactions.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        transactions.forEach((tx) => {
+          const isDebit = tx.from_account === state.account.account_number;
+          const typeClass = isDebit ? "text-red-600" : "text-green-600";
+          const amountPrefix = isDebit ? "-" : "+";
+          const details = isDebit
+            ? `To: ${tx.to_account}`
+            : `From: ${tx.from_account}`;
+
+          const row = `
+                    <tr class="text-sm">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-800">${
+                              tx.description
+                            }</div>
+                            <div class="text-gray-500">${details}</div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500">${tx.type}</td>
+                        <td class="px-6 py-4 font-semibold ${typeClass}">${amountPrefix} $${tx.amount.toFixed(
+            2
+          )}</td>
+                        <td class="px-6 py-4 text-gray-500">${new Date(
+                          tx.timestamp
+                        ).toLocaleString()}</td>
+                    </tr>
+                `;
+          historyBody.innerHTML += row;
+        });
+      }
+
+      function populateBillers(billers) {
+        const selectEl = document.getElementById("biller-select");
+        selectEl.innerHTML =
+          '<option value="" disabled selected>Choose a biller...</option>';
+        billers.forEach((biller) => {
+          const option = `<option value="${biller.id}">${biller.name} (${biller.category})</option>`;
+          selectEl.innerHTML += option;
+        });
+      }
+
+      function renderSpendingChart({ labels, data }) {
+        const ctx = document.getElementById("spending-chart").getContext("2d");
+        const fallback = document.getElementById("spending-chart-fallback");
+        if (state.spendingChart) state.spendingChart.destroy();
+
+        if (!labels || labels.length === 0) {
+          fallback.classList.remove("hidden");
+          return;
+        }
+        fallback.classList.add("hidden");
+
+        state.spendingChart = new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                data: data,
+                backgroundColor: [
+                  "#3b82f6",
+                  "#10b981",
+                  "#ef4444",
+                  "#f59e0b",
+                  "#8b5cf6",
+                ],
+                borderColor: "#ffffff",
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "bottom", labels: { font: { size: 12 } } },
+            },
+          },
+        });
+      }
+
+      // --- Data Fetching ---
+      async function fetchDashboardData() {
+        if (!state.token) return;
+        const accountRes = await apiRequest("/account");
+        if (accountRes.ok) {
+          state.account = accountRes.data.account;
+          populateAccountDetails();
+        }
+        const insightsRes = await apiRequest("/insights");
+        if (insightsRes.ok) renderSpendingChart(insightsRes.data);
+      }
+      async function fetchTransactions() {
+        const res = await apiRequest("/transactions");
+        if (res.ok) populateTransactionHistory(res.data.transactions);
+      }
+      async function fetchBillers() {
+        const res = await apiRequest("/billers");
+        if (res.ok) populateBillers(res.data.billers);
+      }
+      async function fetchProfile() {
+        const res = await apiRequest("/profile");
+        if (res.ok) populateProfile(res.data.profile);
+      }
+
+      // --- Event Handlers ---
+      async function handleLogin(e) {
+        e.preventDefault();
+        const res = await apiRequest("/login", "POST", {
+          username: e.target.elements["login-username"].value,
+          password: e.target.elements["login-password"].value,
+        });
+        if (res.ok) {
+          state.token = res.data.token;
+          state.user = { id: res.data.user_id, username: res.data.username };
+          localStorage.setItem("token", state.token);
+          localStorage.setItem("user", JSON.stringify(state.user));
+          loginForm.reset();
+          showDashboardView();
+        } else {
+          showMessage("login-error", res.data.message, true);
+        }
+      }
+
+      async function handleRegister(e) {
+        e.preventDefault();
+        const res = await apiRequest("/register", "POST", {
+          username: e.target.elements["register-username"].value,
+          email: e.target.elements["register-email"].value,
+          password: e.target.elements["register-password"].value,
+        });
+        if (res.ok) {
+          showMessage("register-message", "Success! Please log in.", false);
+          registerForm.reset();
+        } else {
+          showMessage("register-message", res.data.message, true);
+        }
+      }
+
+      async function handleTransfer(e) {
+        e.preventDefault();
+        const res = await apiRequest("/transactions", "POST", {
+          to_account_number: e.target.elements["to-account"].value,
+          amount: e.target.elements["amount"].value,
+          description: `Transfer to ${e.target.elements["to-account"].value}`,
+        });
+        showMessage("transaction-message", res.data.message, !res.ok);
+        if (res.ok) {
+          transactionForm.reset();
+          fetchDashboardData(); // Refresh balance and insights
+        }
+      }
+
+      async function handleBillPay(e) {
+        e.preventDefault();
+        const res = await apiRequest("/bill-payment", "POST", {
+          biller_id: e.target.elements["biller-select"].value,
+          amount: e.target.elements["bill-amount"].value,
+        });
+        showMessage("billpay-message", res.data.message, !res.ok);
+        if (res.ok) {
+          billpayForm.reset();
+          fetchDashboardData(); // Refresh balance and insights
+        }
+      }
+
+      function handleLogout() {
+        showAuthView();
+      }
+
+      // --- App Initialization ---
+      document.addEventListener("DOMContentLoaded", () => {
+        if (state.token && state.user) {
+          showDashboardView();
+        } else {
+          showAuthView();
+        }
+
+        loginForm.addEventListener("submit", handleLogin);
+        registerForm.addEventListener("submit", handleRegister);
+        transactionForm.addEventListener("submit", handleTransfer);
+        billpayForm.addEventListener("submit", handleBillPay);
+        logoutBtn.addEventListener("click", handleLogout);
+
+        sidebarItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            navigateTo(e.currentTarget.dataset.view);
+          });
+        });
+
+        document
+          .getElementById("show-register")
+          .addEventListener("click", (e) => {
+            e.preventDefault();
+            // Instead of hiding parent, just hide the login form's container
+            loginForm.closest(".bg-white").classList.add("hidden");
+            registerForm.closest(".bg-white").classList.remove("hidden");
+          });
+        document.getElementById("show-login").addEventListener("click", (e) => {
+          e.preventDefault();
+          // Show the login form's container
+          loginForm.closest(".bg-white").classList.remove("hidden");
+          registerForm.closest(".bg-white").classList.add("hidden");
+        });
+
+        // Initially, only the login form's container should be visible
+        registerForm.closest(".bg-white").classList.add("hidden");
+      });
+    </script>
+  </body>
+</html>

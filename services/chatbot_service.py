@@ -1,12 +1,10 @@
-# file: services/chatbot_service.py
+import os
 import google.generativeai as genai
-from db_config import accounts_collection
 from bson import ObjectId
+from database import db_instance
 
 def get_gemini_response(user_id, user_message, api_key):
-    """
-    Generates a contextual response using the Gemini API.
-    """
+    """Generates a contextual response using the Gemini API."""
     if not api_key:
         return "The AI chatbot is currently offline. Please try again later."
     
@@ -14,13 +12,13 @@ def get_gemini_response(user_id, user_message, api_key):
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel('gemini-pro')
 
-        # --- Fetch Context ---
-        account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
+        accounts_collection = db_instance.get_collection('accounts')
         balance_info = "unavailable"
-        if account:
-            balance_info = f"${account.get('balance', 0):.2f}"
+        if accounts_collection:
+            account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
+            if account:
+                balance_info = f"${account.get('balance', 0):.2f}"
 
-        # --- Construct a Detailed Prompt for the LLM ---
         prompt = f"""
         You are "SmartBot", a friendly and professional AI banking assistant for SmartBank.
         Your user is currently logged into their account.
@@ -35,12 +33,10 @@ def get_gemini_response(user_id, user_message, api_key):
         User's question: "{user_message}"
         """
 
-        # --- Generate Content ---
         response = model.generate_content(prompt)
         return response.text
 
     except Exception as e:
         print(f"Error calling Gemini API: {e}")
-        # Fallback response if the API call fails
         return "I'm sorry, I'm having trouble connecting to my brain right now. Please try again in a moment."
 

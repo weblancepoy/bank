@@ -58,4 +58,3 @@ class Database:
 
 # Create a single, globally accessible instance of the database connection.
 db_instance = Database()
-

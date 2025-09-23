@@ -29,9 +29,8 @@ def initialize_billers():
 def get_all_billers():
     """Retrieves all billers from the collection."""
     billers_collection = _get_billers_collection()
-    if not billers_collection:
+    if billers_collection is None:
         return {'message': 'Database connection error'}, 500
 
     billers = list(billers_collection.find({}))
     return {'billers': [_serialize_biller(b) for b in billers]}, 200
-

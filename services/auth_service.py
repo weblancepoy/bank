@@ -2,7 +2,7 @@ import jwt
 import datetime
 import random
 import os
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from bson import ObjectId
 from database import db_instance
 from . import email_service
@@ -51,18 +51,18 @@ def login(username, password):
 
         user = users_collection.find_one({'username': username, 'is_admin': False})
 
-        # Separate checks to prevent crashing on non-existent user
         if not user or not check_password_hash(user.get('password', ''), password):
             return {'message': 'Invalid username or password'}, 401
         
         if user.get('status') == 'suspended':
             return {'message': 'Your account has been suspended'}, 403
+        if user.get('status') == 'pending':
+            return {'message': 'Your account is pending admin approval'}, 403
         
         code = generate_2fa_code(user['_id'])
         if code is None:
             return {'message': 'Could not generate 2FA code.'}, 500
 
-        # Attempt to send the email
         email_sent = email_service.send_2fa_code(user['email'], code)
         if not email_sent:
             return {'message': 'Failed to send 2FA code. Please check server logs.'}, 500
@@ -72,6 +72,25 @@ def login(username, password):
         print(f"ERROR in login service: {e}")
         return {'message': 'An internal server error occurred.'}, 500
 
+def verify_login_code(user_id, code):
+    """Verifies a 2FA code and issues a JWT token."""
+    users_collection = _get_users_collection()
+    if users_collection is None:
+        return {'message': 'Database connection error'}, 500
+    
+    if verify_2fa_code(ObjectId(user_id), code):
+        user = users_collection.find_one({'_id': ObjectId(user_id)})
+        token = jwt.encode({
+            'user_id': str(user['_id']),
+            'is_admin': user['is_admin'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, SECRET_KEY, "HS256")
+        
+        users_collection.update_one({'_id': user['_id']}, {'$set': {'last_login': datetime.datetime.utcnow()}})
+
+        return {'message': 'Login successful!', 'token': token, 'username': user['username']}, 200
+    
+    return {'message': 'Invalid or expired 2FA code.'}, 401
 
 def admin_login(username, password):
     """Handles admin login with robust error handling."""
@@ -82,7 +101,6 @@ def admin_login(username, password):
 
         user = users_collection.find_one({'username': username, 'is_admin': True})
 
-        # Separate checks to prevent crashing on non-existent user
         if not user or not check_password_hash(user.get('password', ''), password):
             return {'message': 'Invalid admin credentials'}, 401
         
@@ -98,4 +116,3 @@ def admin_login(username, password):
     except Exception as e:
         print(f"ERROR in admin_login service: {e}")
         return {'message': 'An internal server error occurred.'}, 500
-

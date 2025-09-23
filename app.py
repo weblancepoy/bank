@@ -1,27 +1,39 @@
 import os
 from functools import wraps
-from flask import Flask, jsonify, request, render_template, g, Response
+from flask import Flask, jsonify, request, render_template, g, Response, send_from_directory
 import jwt
 from dotenv import load_dotenv
 from bson import ObjectId
 import datetime
 
+# Load environment variables
 load_dotenv()
 
+# Import services and database instance
 from database import db_instance
 from services import (
-    user_service, account_service, transaction_service, 
-    auth_service, biller_service, report_service, chatbot_service
+    user_service, account_service, transaction_service,
+    auth_service, biller_service, chatbot_service, report_service
 )
+from services.seed_data import seed_initial_data # Import the new seeding function
+from services.reports_blueprint import reports_bp
 
+# Initialize Flask App
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-very-secure-and-long-secret-key-that-you-should-change')
+# Load the Gemini API key from environment variables
 app.config['GEMINI_API_KEY'] = os.environ.get('GEMINI_API_KEY')
 
+# Warning if Gemini Key is missing
 if not app.config['GEMINI_API_KEY']:
     print("WARNING: GEMINI_API_KEY environment variable not set. Chatbot will have limited functionality.")
 
+# Register blueprints
+app.register_blueprint(reports_bp, url_prefix='/api/admin/reports')
+
+# --- Decorators for authentication ---
 def token_required(f):
+    """Decorator to require a valid JWT token."""
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.headers.get('x-access-token')
@@ -39,6 +51,7 @@ def token_required(f):
     return decorated
 
 def admin_required(f):
+    """Decorator to require admin access."""
     @wraps(f)
     @token_required
     def decorated(*args, **kwargs):
@@ -47,159 +60,178 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+# --- Static File Serving and Root Route ---
 @app.route('/')
 def index():
+    """Serves the main index.html file."""
     return render_template('index.html')
 
+@app.route('/static/<path:path>')
+def send_static(path):
+    """Serves files from the static directory (e.g., CSS, JS)."""
+    return send_from_directory('static', path)
+
+# --- API Routes ---
 @app.route('/api/register', methods=['POST'])
 def register_user():
+    """Endpoint for user registration."""
     data = request.get_json()
     response, status_code = user_service.create_user(data)
-    if status_code == 201:
-        user_id = str(response['user']['_id'])
-        account_service.create_account(user_id)
+    # DELETED: Removed account creation from here. It will now be handled on admin approval.
     return jsonify(response), status_code
 
 @app.route('/api/login', methods=['POST'])
-def login_user():
+def login():
+    """Endpoint for user login (initiates 2FA)."""
     data = request.get_json()
     response, status_code = auth_service.login(data.get('username'), data.get('password'))
     return jsonify(response), status_code
 
 @app.route('/api/login/verify', methods=['POST'])
-def verify_2fa():
+def verify_login():
+    """Endpoint to verify 2FA code."""
     data = request.get_json()
-    user_id = data.get('user_id')
-    code = data.get('code')
-    if auth_service.verify_2fa_code(ObjectId(user_id), code):
-        user_response, user_status = user_service.get_user_profile(user_id)
-        if user_status == 200:
-            token = jwt.encode({
-                'user_id': user_id, 
-                'is_admin': False, 
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-            }, app.config['SECRET_KEY'], "HS256")
-            return jsonify({'token': token, 'username': user_response['profile']['username']}), 200
-        else:
-            return jsonify(user_response), user_status
-    return jsonify({'message': 'Invalid or expired 2FA code'}), 401
+    response, status_code = auth_service.verify_login_code(data.get('user_id'), data.get('code'))
+    return jsonify(response), status_code
 
 @app.route('/api/admin/login', methods=['POST'])
-def login_admin():
+def admin_login():
+    """Endpoint for admin login."""
     data = request.get_json()
     response, status_code = auth_service.admin_login(data.get('username'), data.get('password'))
     return jsonify(response), status_code
 
-@app.route('/api/chatbot', methods=['POST'])
-@token_required
-def chatbot_response():
-    data = request.get_json()
-    user_message = data.get('message')
-    if not user_message:
-        return jsonify({'reply': 'Please provide a message.'}), 400
-    
-    api_key = app.config.get('GEMINI_API_KEY')
-    ai_response = chatbot_service.get_gemini_response(g.current_user_id, user_message, api_key)
-    return jsonify({'reply': ai_response})
-
 @app.route('/api/account', methods=['GET'])
 @token_required
-def get_account_details():
+def get_user_account():
+    """Get the logged-in user's account details."""
     response, status_code = account_service.get_account_by_user_id(g.current_user_id)
     return jsonify(response), status_code
 
 @app.route('/api/transactions', methods=['GET'])
 @token_required
-def get_transactions():
+def get_user_transactions():
+    """Get transactions for the logged-in user."""
     response, status_code = transaction_service.get_transactions_by_user_id(g.current_user_id)
     return jsonify(response), status_code
 
 @app.route('/api/transactions', methods=['POST'])
 @token_required
-def create_transaction_route():
+def create_transfer():
+    """Create a new money transfer transaction."""
     data = request.get_json()
-    response, status_code = transaction_service.create_transfer(g.current_user_id, data.get('to_account_number'), data.get('amount'), data.get('description'))
+    response, status_code = transaction_service.create_transfer(
+        from_user_id=g.current_user_id,
+        to_account_number=data.get('to_account_number'),
+        amount=data.get('amount'),
+        description=data.get('description')
+    )
     return jsonify(response), status_code
-
-@app.route('/api/admin/users', methods=['GET'])
-@admin_required
-def get_all_users():
-    response, status_code = user_service.get_all_users()
-    return jsonify(response), status_code
-
-@app.route('/api/admin/users', methods=['POST'])
-@admin_required
-def admin_create_user():
-    data = request.get_json()
-    response, status_code = user_service.create_user(data, created_by_admin=True)
-    if status_code == 201:
-        user_id = str(response['user']['_id'])
-        account_service.create_account(user_id)
-    return jsonify(response), status_code
-    
-@app.route('/api/admin/transactions', methods=['GET'])
-@admin_required
-def admin_get_transactions():
-    response, status_code = transaction_service.get_all_transactions()
-    return jsonify(response), status_code
-
-@app.route('/api/admin/reports/transactions.csv', methods=['GET'])
-@admin_required
-def download_transaction_report():
-    csv_data = report_service.generate_transaction_report_csv()
-    return Response(csv_data, mimetype="text/csv", headers={"Content-disposition": "attachment; filename=transaction_report.csv"})
 
 @app.route('/api/billers', methods=['GET'])
 @token_required
-def get_billers_route():
+def get_billers():
+    """Get a list of all available billers."""
     response, status_code = biller_service.get_all_billers()
     return jsonify(response), status_code
-    
+
 @app.route('/api/bill-payment', methods=['POST'])
 @token_required
-def pay_bill_route():
-    response, status_code = transaction_service.pay_bill(g.current_user_id, request.json.get('biller_id'), request.json.get('amount'))
+def pay_bill():
+    """Pay a bill to a specific biller."""
+    data = request.get_json()
+    response, status_code = transaction_service.pay_bill(
+        user_id=g.current_user_id,
+        biller_id=data.get('biller_id'),
+        amount=data.get('amount')
+    )
+    return jsonify(response), status_code
+
+@app.route('/api/deposit', methods=['POST'])
+@token_required
+def deposit_funds():
+    """Endpoint to deposit funds into the user's account."""
+    data = request.get_json()
+    response, status_code = account_service.deposit(
+        user_id=g.current_user_id,
+        amount=data.get('amount')
+    )
+    return jsonify(response), status_code
+
+@app.route('/api/withdraw', methods=['POST'])
+@token_required
+def withdraw_funds():
+    """Endpoint to withdraw funds from the user's account."""
+    data = request.get_json()
+    response, status_code = account_service.withdraw(
+        user_id=g.current_user_id,
+        amount=data.get('amount')
+    )
     return jsonify(response), status_code
 
 @app.route('/api/insights', methods=['GET'])
 @token_required
 def get_insights():
+    """Get user spending insights."""
     response, status_code = transaction_service.get_spending_insights(g.current_user_id)
+    return jsonify(response), status_code
+
+@app.route('/api/chatbot', methods=['POST'])
+@token_required
+def get_chatbot_response():
+    """Get a response from the AI chatbot."""
+    data = request.get_json()
+    user_message = data.get('message')
+    api_key = app.config['GEMINI_API_KEY']
+    reply = chatbot_service.get_gemini_response(g.current_user_id, user_message, api_key)
+    return jsonify({'reply': reply}), 200
+
+# Admin Routes
+@app.route('/api/admin/stats', methods=['GET'])
+@admin_required
+def get_admin_stats():
+    """Admin endpoint to get dashboard statistics."""
+    response, status_code = report_service.get_dashboard_stats()
+    return jsonify(response), status_code
+
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def get_all_users():
+    """Admin endpoint to get a list of all non-admin users."""
+    response, status_code = user_service.get_all_users()
     return jsonify(response), status_code
 
 @app.route('/api/admin/users/<user_id>', methods=['PUT'])
 @admin_required
-def update_user_status_route(user_id):
-    response, status_code = user_service.update_user_status(user_id, request.json.get('status'))
+def update_user_status(user_id):
+    """Admin endpoint to update a user's status (active/suspended)."""
+    data = request.get_json()
+    status = data.get('status')
+    response, status_code = user_service.update_user_status(user_id, status)
     return jsonify(response), status_code
 
 @app.route('/api/admin/users/<user_id>', methods=['DELETE'])
 @admin_required
-def delete_user_route(user_id):
+def delete_user(user_id):
+    """Admin endpoint to delete a user."""
     response, status_code = user_service.delete_user(user_id)
     return jsonify(response), status_code
-    
-@app.route('/api/admin/stats', methods=['GET'])
+
+@app.route('/api/admin/transactions', methods=['GET'])
 @admin_required
-def get_admin_stats():
-    response, status_code = report_service.get_dashboard_stats()
+def get_all_transactions_admin():
+    """Admin endpoint to get a list of all transactions."""
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    response, status_code = transaction_service.get_all_transactions(start_date=start_date, end_date=end_date)
     return jsonify(response), status_code
 
-@app.route('/api/admin/transactions/<tx_id>', methods=['PUT'])
-@admin_required
-def admin_update_transaction(tx_id):
-    response, status_code = transaction_service.update_transaction(tx_id, request.json)
-    return jsonify(response), status_code
-
-@app.route('/api/admin/transactions/<tx_id>', methods=['DELETE'])
-@admin_required
-def admin_delete_transaction(tx_id):
-    response, status_code = transaction_service.delete_transaction(tx_id)
-    return jsonify(response), status_code
-
+# --- Application Runner ---
 if __name__ == '__main__':
     with app.app_context():
+        # This will create collections and an admin user if they don't exist
         user_service.create_admin_user_if_not_exists()
         biller_service.initialize_billers()
+        seed_initial_data() # Call the new function to seed data
+    # The debug flag is useful for development as it enables a debugger and auto-reloader
     app.run(host='0.0.0.0', port=5000, debug=True)
-

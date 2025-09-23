@@ -2,19 +2,20 @@ import os
 import google.generativeai as genai
 from bson import ObjectId
 from database import db_instance
+import traceback
 
 def get_gemini_response(user_id, user_message, api_key):
     """Generates a contextual response using the Gemini API."""
-    if not api_key:
-        return "The AI chatbot is currently offline. Please try again later."
+    if not api_key or api_key == '<your_gemini_api_key>':
+        return "The AI chatbot is currently offline. Please ensure your Gemini API key is set correctly."
     
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.0-pro')
 
         accounts_collection = db_instance.get_collection('accounts')
         balance_info = "unavailable"
-        if accounts_collection:
+        if accounts_collection is not None:
             account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
             if account:
                 balance_info = f"${account.get('balance', 0):.2f}"
@@ -37,6 +38,6 @@ def get_gemini_response(user_id, user_message, api_key):
         return response.text
 
     except Exception as e:
-        print(f"Error calling Gemini API: {e}")
+        print("ERROR: An error occurred while communicating with the Gemini API.")
+        traceback.print_exc() # This will print the full error traceback to the console.
         return "I'm sorry, I'm having trouble connecting to my brain right now. Please try again in a moment."
-

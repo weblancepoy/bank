@@ -1,12 +1,19 @@
+import random
 from datetime import datetime
 from bson import ObjectId
+from werkzeug.security import generate_password_hash
 from database import db_instance
+import csv
+import io
 
 def _get_collections():
     """Helper to get all required collections."""
     transactions = db_instance.get_collection('transactions')
     accounts = db_instance.get_collection('accounts')
     billers = db_instance.get_collection('billers')
+    # Add a check to log if any collection is not found
+    if not all([transactions is not None, accounts is not None, billers is not None]):
+        print("ERROR: A database collection could not be retrieved. Please check MongoDB connection and ensure collections exist.")
     return transactions, accounts, billers
 
 def _serialize_transaction(tx):
@@ -18,9 +25,13 @@ def _serialize_transaction(tx):
     return tx
 
 def create_transfer(from_user_id, to_account_number, amount, description):
-    """Creates a new transfer transaction between two accounts."""
+    """
+    Creates a new money transfer transaction between two accounts.
+    NOTE: This function uses a MongoDB session for ACID compliance.
+    Ensure your MongoDB instance is a replica set to support transactions.
+    """
     transactions_collection, accounts_collection, _ = _get_collections()
-    if not all([transactions_collection, accounts_collection]):
+    if transactions_collection is None or accounts_collection is None:
         return {'message': 'Database connection error'}, 500
 
     try: amount = float(amount)
@@ -35,7 +46,8 @@ def create_transfer(from_user_id, to_account_number, amount, description):
     if from_account['balance'] < amount: return {'message': 'Insufficient funds'}, 400
     
     with db_instance.client.start_session() as session:
-        with session.in_transaction():
+        try:
+            session.start_transaction()
             accounts_collection.update_one({'_id': from_account['_id']}, {'$inc': {'balance': -amount}}, session=session)
             accounts_collection.update_one({'_id': to_account['_id']}, {'$inc': {'balance': amount}}, session=session)
             transactions_collection.insert_one({
@@ -46,12 +58,22 @@ def create_transfer(from_user_id, to_account_number, amount, description):
                 'description': description or "Sent Money", 
                 'timestamp': datetime.utcnow()
             }, session=session)
+            session.commit_transaction()
+        except Exception as e:
+            session.abort_transaction()
+            print(f"ERROR: Transaction failed. Details: {e}")
+            return {'message': 'Transaction failed. Please try again.'}, 500
+            
     return {'message': 'Transfer successful'}, 201
 
 def pay_bill(user_id, biller_id, amount):
-    """Creates a new bill payment transaction."""
+    """
+    Creates a new bill payment transaction.
+    NOTE: This function uses a MongoDB session for ACID compliance.
+    Ensure your MongoDB instance is a replica set to support transactions.
+    """
     transactions_collection, accounts_collection, billers_collection = _get_collections()
-    if not all([transactions_collection, accounts_collection, billers_collection]):
+    if transactions_collection is None or accounts_collection is None or billers_collection is None:
         return {'message': 'Database connection error'}, 500
 
     try: amount = float(amount)
@@ -66,7 +88,8 @@ def pay_bill(user_id, biller_id, amount):
     if from_account['balance'] < amount: return {'message': 'Insufficient funds'}, 400
     
     with db_instance.client.start_session() as session:
-        with session.in_transaction():
+        try:
+            session.start_transaction()
             accounts_collection.update_one({'_id': from_account['_id']}, {'$inc': {'balance': -amount}}, session=session)
             transactions_collection.insert_one({
                 'from_account': from_account['account_number'], 
@@ -76,12 +99,44 @@ def pay_bill(user_id, biller_id, amount):
                 'description': f"Payment to {biller['name']}", 
                 'timestamp': datetime.utcnow()
             }, session=session)
+            session.commit_transaction()
+        except Exception as e:
+            session.abort_transaction()
+            print(f"ERROR: Transaction failed. Details: {e}")
+            return {'message': 'Transaction failed. Please try again.'}, 500
     return {'message': 'Bill paid successfully'}, 201
+
+def record_transaction(account_number, amount, type, description, session=None):
+    """Creates a transaction record for a single account within a session."""
+    transactions_collection, _, _ = _get_collections()
+    if transactions_collection is None:
+        # Note: This return won't be hit if the caller uses a session correctly.
+        return {'message': 'Database connection error'}, 500
+    
+    if session:
+        transactions_collection.insert_one({
+            'from_account': account_number if type == 'Withdrawal' else 'N/A',
+            'to_account': account_number if type == 'Deposit' else 'N/A',
+            'amount': amount,
+            'type': type,
+            'description': description,
+            'timestamp': datetime.utcnow()
+        }, session=session)
+    else:
+        transactions_collection.insert_one({
+            'from_account': account_number if type == 'Withdrawal' else 'N/A',
+            'to_account': account_number if type == 'Deposit' else 'N/A',
+            'amount': amount,
+            'type': type,
+            'description': description,
+            'timestamp': datetime.utcnow()
+        })
+    return {'message': 'Transaction recorded successfully'}, 201
 
 def get_transactions_by_user_id(user_id):
     """Retrieves all transactions for a specific user."""
     transactions_collection, accounts_collection, _ = _get_collections()
-    if not all([transactions_collection, accounts_collection]):
+    if transactions_collection is None or accounts_collection is None:
         return {'message': 'Database connection error'}, 500
         
     account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
@@ -96,7 +151,7 @@ def get_transactions_by_user_id(user_id):
 def get_spending_insights(user_id):
     """Aggregates spending data by category for a user."""
     transactions_collection, accounts_collection, _ = _get_collections()
-    if not all([transactions_collection, accounts_collection]):
+    if transactions_collection is None or accounts_collection is None:
         return {'message': 'Database connection error'}, 500
 
     account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
@@ -110,19 +165,39 @@ def get_spending_insights(user_id):
     results = list(transactions_collection.aggregate(pipeline))
     return {'labels': [r['_id'] for r in results], 'data': [r['totalAmount'] for r in results]}, 200
 
-def get_all_transactions():
-    """Retrieves all transactions (Admin)."""
+def get_all_transactions(start_date=None, end_date=None):
+    """
+    Retrieves all transactions (Admin), with optional date filtering.
+    
+    Args:
+        start_date (str): Optional start date for filtering (ISO format).
+        end_date (str): Optional end date for filtering (ISO format).
+    """
     transactions_collection, _, _ = _get_collections()
-    if not transactions_collection:
+    if transactions_collection is None:
         return {'message': 'Database connection error'}, 500
-        
-    transactions = list(transactions_collection.find({}).sort('timestamp', -1))
+    
+    query = {}
+    if start_date or end_date:
+        query['timestamp'] = {}
+        if start_date:
+            try:
+                query['timestamp']['$gte'] = datetime.fromisoformat(start_date)
+            except ValueError:
+                return {'message': 'Invalid start date format'}, 400
+        if end_date:
+            try:
+                query['timestamp']['$lte'] = datetime.fromisoformat(end_date)
+            except ValueError:
+                return {'message': 'Invalid end date format'}, 400
+
+    transactions = list(transactions_collection.find(query).sort('timestamp', -1))
     return {'transactions': [_serialize_transaction(tx) for tx in transactions]}, 200
 
 def update_transaction(tx_id, data):
     """Updates a transaction's description or type (Admin)."""
     transactions_collection, _, _ = _get_collections()
-    if not transactions_collection:
+    if transactions_collection is None:
         return {'message': 'Database connection error'}, 500
 
     update_data = {k: v for k, v in data.items() if k in ['description', 'type']}
@@ -134,9 +209,8 @@ def update_transaction(tx_id, data):
 def delete_transaction(tx_id):
     """Deletes a transaction (Admin)."""
     transactions_collection, _, _ = _get_collections()
-    if not transactions_collection:
+    if transactions_collection is None:
         return {'message': 'Database connection error'}, 500
         
     result = transactions_collection.delete_one({'_id': ObjectId(tx_id)})
     return ({'message': 'Transaction deleted'}, 200) if result.deleted_count else ({'message': 'Transaction not found'}, 404)
-

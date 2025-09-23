@@ -6,6 +6,8 @@
     <title>SmartBank - Future of Banking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
@@ -15,18 +17,22 @@
       rel="stylesheet"
     />
     <style>
+      /* General Body Style */
       body {
         font-family: "Inter", sans-serif;
       }
-      .hidden {
+
+      /* Ensure views that are meant to be hidden are not displayed */
+      .view.hidden,
+      .modal.hidden {
         display: none !important;
       }
 
-      /* Advanced Animations */
+      /* Subtle Animations */
       @keyframes slideInUp {
         from {
           opacity: 0;
-          transform: translateY(50px);
+          transform: translateY(20px);
         }
         to {
           opacity: 1;
@@ -36,7 +42,7 @@
       @keyframes slideInRight {
         from {
           opacity: 0;
-          transform: translateX(50px);
+          transform: translateX(20px);
         }
         to {
           opacity: 1;
@@ -46,29 +52,11 @@
       @keyframes fadeInScale {
         from {
           opacity: 0;
-          transform: scale(0.9);
+          transform: scale(0.95);
         }
         to {
           opacity: 1;
           transform: scale(1);
-        }
-      }
-      @keyframes pulse-glow {
-        0%,
-        100% {
-          box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
-        }
-        50% {
-          box-shadow: 0 0 40px rgba(79, 70, 229, 0.8);
-        }
-      }
-      @keyframes float {
-        0%,
-        100% {
-          transform: translateY(0px);
-        }
-        50% {
-          transform: translateY(-10px);
         }
       }
 
@@ -81,28 +69,28 @@
       .animate-fade-scale {
         animation: fadeInScale 0.4s ease-out;
       }
-      .animate-pulse-glow {
-        animation: pulse-glow 2s infinite;
-      }
-      .animate-float {
-        animation: float 3s ease-in-out infinite;
-      }
 
       /* Glassmorphism & Modern Effects */
       .glass {
         background: rgba(255, 255, 255, 0.1);
+        -webkit-backdrop-filter: blur(20px); /* Safari compatibility */
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.2);
       }
       .glass-dark {
         background: rgba(0, 0, 0, 0.3);
+        -webkit-backdrop-filter: blur(25px); /* Safari compatibility */
         backdrop-filter: blur(25px);
         border: 1px solid rgba(255, 255, 255, 0.1);
       }
       .glass-card {
         background: rgba(255, 255, 255, 0.95);
+        -webkit-backdrop-filter: blur(20px); /* Safari compatibility */
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 2rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
       }
       .gradient-mesh {
         background: linear-gradient(
@@ -127,38 +115,60 @@
         }
       }
 
-      /* Advanced Components */
+      /* Converted @apply rules from your original stylesheet */
       .neo-btn {
-        @apply relative overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-105;
+        position: relative;
+        overflow: hidden;
+        background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
       }
-      .neo-btn::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.3),
-          transparent
-        );
-        transition: left 0.5s;
-      }
-      .neo-btn:hover::before {
-        left: 100%;
+
+      .neo-btn:hover {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-0.25rem) scale(1.05);
       }
 
       .form-modern {
-        @apply w-full px-6 py-4 bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 rounded-2xl focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all duration-300 hover:bg-gray-100/80;
+        width: 100%;
+        padding: 1rem 1.5rem;
+        background-color: rgba(249, 250, 251, 0.8);
+        border: 1px solid rgba(229, 231, 235, 0.5);
+        border-radius: 1rem;
+        transition: all 0.3s ease-in-out;
       }
+
+      .form-modern:hover {
+        background-color: rgba(243, 244, 246, 0.8);
+      }
+
       .form-modern:focus {
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
       }
 
       .sidebar-modern {
-        @apply flex items-center px-6 py-4 mx-3 my-2 rounded-2xl cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-500/20 hover:to-purple-500/20 hover:transform hover:translate-x-2;
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        margin: 0.5rem 0.75rem;
+        border-radius: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+      }
+      .sidebar-modern:hover {
+        background-image: linear-gradient(
+          to right,
+          rgba(79, 70, 229, 0.2),
+          rgba(124, 58, 237, 0.2)
+        );
+        transform: translateX(0.5rem);
       }
       .sidebar-modern.active {
         background: linear-gradient(135deg, #4f46e5, #7c3aed);
@@ -168,7 +178,21 @@
       }
 
       .admin-sidebar-modern {
-        @apply flex items-center px-6 py-4 mx-3 my-2 rounded-2xl cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-red-500/20 hover:to-pink-500/20 hover:transform hover:translate-x-2;
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        margin: 0.5rem 0.75rem;
+        border-radius: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+      }
+      .admin-sidebar-modern:hover {
+        background-image: linear-gradient(
+          to right,
+          rgba(239, 68, 68, 0.2),
+          rgba(236, 72, 153, 0.2)
+        );
+        transform: translateX(0.5rem);
       }
       .admin-sidebar-modern.active {
         background: linear-gradient(135deg, #dc2626, #e11d48);
@@ -177,103 +201,80 @@
         box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
       }
 
-      .card-modern {
-        @apply bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl p-8 transition-all duration-500 hover:shadow-2xl hover:bg-white/90 border border-white/20;
-      }
-      .card-modern:hover {
-        transform: translateY(-8px) scale(1.02);
-      }
-
-      .balance-card {
-        @apply relative overflow-hidden;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-      .balance-card::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          transparent 70%
-        );
-        animation: float 6s ease-in-out infinite;
-      }
-
       /* Notification Styles */
       .notification {
-        @apply fixed top-6 right-6 px-6 py-4 rounded-2xl shadow-lg z-50 transform transition-all duration-300;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: white;
+        font-weight: 600;
+        min-width: 300px;
       }
       .notification.success {
-        @apply bg-green-500 text-white;
+        background-color: #10b981;
       }
       .notification.error {
-        @apply bg-red-500 text-white;
+        background-color: #ef4444;
       }
       .notification.info {
-        @apply bg-blue-500 text-white;
+        background-color: #3b82f6;
+      }
+      #notification-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
       }
 
-      /* Loading Animations */
-      .spinner-modern {
-        width: 60px;
-        height: 60px;
-        background: conic-gradient(
-          from 0deg,
-          #4f46e5,
-          #7c3aed,
-          #ec4899,
-          #4f46e5
-        );
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        position: relative;
+      /* Chatbot styles */
+      #chatbot-toggle,
+      #chatbot-window {
+        z-index: 90;
       }
-      .spinner-modern::before {
-        content: "";
-        position: absolute;
-        top: 6px;
-        left: 6px;
-        right: 6px;
-        bottom: 6px;
-        background: white;
-        border-radius: 50%;
+      .chat-message {
+        padding: 8px 12px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        max-width: 80%;
       }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      /* Dark Mode Support */
-      .dark .glass-card {
-        background: rgba(31, 41, 55, 0.9);
-      }
-      .dark .form-modern {
-        background: rgba(55, 65, 81, 0.8);
-        border-color: rgba(75, 85, 99, 0.5);
+      .user-message {
+        background-color: #4f46e5;
         color: white;
+        align-self: flex-end;
+        margin-left: auto;
+        border-bottom-right-radius: 2px;
+      }
+      .bot-message {
+        background-color: #e5e7eb;
+        color: #1f2937;
+        align-self: flex-start;
+        border-bottom-left-radius: 2px;
+      }
+      .chat-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      .chat-container::-webkit-scrollbar-thumb {
+        background-color: #d1d5db;
+        border-radius: 4px;
+      }
+      .chat-container::-webkit-scrollbar-track {
+        background-color: transparent;
       }
     </style>
   </head>
   <body class="h-full gradient-mesh">
     <div id="app" class="h-full">
-      <!-- Homepage -->
-      <div id="homepage-view" class="min-h-full">
+      <!-- Homepage View -->
+      <div id="homepage-view" class="min-h-full view hidden">
         <nav class="glass-dark fixed w-full top-0 z-50">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
               <div class="flex items-center animate-slide-right">
                 <div class="relative">
-                  <i
-                    class="fas fa-university text-3xl text-indigo-300 animate-pulse-glow"
-                  ></i>
-                  <div
-                    class="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping"
-                  ></div>
+                  <i class="fas fa-university text-3xl text-indigo-300"></i>
                 </div>
                 <span class="ml-4 text-2xl font-bold text-white"
                   >SmartBank</span
@@ -284,17 +285,17 @@
                 >
               </div>
               <div class="flex space-x-4">
-                <button onclick="showModal('user-login-modal')" class="neo-btn">
+                <button data-modal="user-login-modal" class="neo-btn">
                   <i class="fas fa-sign-in-alt mr-2"></i>Login
                 </button>
                 <button
-                  onclick="showModal('user-register-modal')"
+                  data-modal="user-register-modal"
                   class="glass px-6 py-3 rounded-2xl text-white font-semibold hover:bg-white/20 transition-all duration-300"
                 >
                   <i class="fas fa-user-plus mr-2"></i>Register
                 </button>
                 <button
-                  onclick="showModal('admin-login-modal')"
+                  data-modal="admin-login-modal"
                   class="bg-red-600/80 backdrop-blur-sm px-6 py-3 rounded-2xl text-white font-semibold hover:bg-red-700/80 transition-all duration-300"
                 >
                   <i class="fas fa-shield-alt mr-2"></i>Admin
@@ -307,20 +308,6 @@
         <div
           class="min-h-screen flex items-center justify-center relative overflow-hidden"
         >
-          <!-- Floating Elements -->
-          <div
-            class="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full animate-float"
-            style="animation-delay: 0s"
-          ></div>
-          <div
-            class="absolute top-1/3 right-1/4 w-24 h-24 bg-indigo-400/20 rounded-full animate-float"
-            style="animation-delay: 1s"
-          ></div>
-          <div
-            class="absolute bottom-1/4 left-1/3 w-40 h-40 bg-purple-400/10 rounded-full animate-float"
-            style="animation-delay: 2s"
-          ></div>
-
           <div class="text-center text-white px-4 relative z-10">
             <h1 class="text-6xl md:text-8xl font-black mb-6 animate-slide-up">
               The Future of
@@ -341,13 +328,13 @@
               style="animation-delay: 0.4s"
             >
               <button
-                onclick="showModal('user-register-modal')"
+                data-modal="user-register-modal"
                 class="neo-btn text-xl px-12 py-6"
               >
                 <i class="fas fa-rocket mr-3"></i>Get Started Now
               </button>
               <button
-                onclick="scrollToFeatures()"
+                onclick="document.getElementById('features-section').scrollIntoView({ behavior: 'smooth' });"
                 class="glass px-12 py-6 rounded-2xl text-white font-bold text-xl hover:bg-white/20 transition-all duration-300"
               >
                 <i class="fas fa-play mr-3"></i>Discover Features
@@ -355,8 +342,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Features Section -->
         <div id="features-section" class="py-32 relative">
           <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-5xl font-black text-center text-white mb-20">
@@ -404,1638 +389,560 @@
         </div>
       </div>
 
-      <!-- All Modals -->
+      <!-- User Dashboard View -->
+      <div id="user-dashboard-view" class="view hidden min-h-full">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+          <!-- Sidebar -->
+          <div
+            id="user-sidebar"
+            class="flex flex-col w-64 bg-white dark:bg-gray-800 shadow-xl"
+          >
+            <div class="flex items-center justify-center h-20 shadow-lg">
+              <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                <i class="fas fa-chart-pie text-indigo-500 mr-2"></i>Dashboard
+              </h1>
+            </div>
+            <nav id="user-sidebar-nav" class="flex-1 px-2 py-4 space-y-2">
+              <a
+                href="#"
+                data-view="dashboard-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300 active"
+              >
+                <i class="fas fa-home w-6 h-6 mr-3"></i>
+                Dashboard
+              </a>
+              <a
+                href="#"
+                data-view="transactions-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-exchange-alt w-6 h-6 mr-3"></i>
+                Transactions
+              </a>
+              <a
+                href="#"
+                data-view="transfer-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-paper-plane w-6 h-6 mr-3"></i>
+                Transfer
+              </a>
+              <a
+                href="#"
+                data-view="bill-payment-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-file-invoice-dollar w-6 h-6 mr-3"></i>
+                Bill Pay
+              </a>
+              <a
+                href="#"
+                data-view="deposit-withdraw-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-money-bill-transfer w-6 h-6 mr-3"></i>
+                Deposit / Withdraw
+              </a>
+              <a
+                href="#"
+                data-view="insights-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-chart-bar w-6 h-6 mr-3"></i>
+                Insights
+              </a>
+              <a
+                href="#"
+                data-view="profile-content"
+                class="sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-user-circle w-6 h-6 mr-3"></i>
+                Profile
+              </a>
+            </nav>
+            <div
+              class="mt-auto px-4 py-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <span
+                class="block text-sm font-semibold text-gray-600 dark:text-gray-400"
+                >Signed in as:</span
+              >
+              <span
+                id="sidebar-username"
+                class="block text-lg font-bold text-gray-800 dark:text-white"
+              ></span>
+              <button
+                class="logout-btn w-full mt-2 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Content -->
+          <div id="user-main-content" class="flex-1 p-6 overflow-y-auto">
+            <!-- Content will be loaded here dynamically -->
+          </div>
+
+          <!-- Chatbot Toggle Button -->
+          <button
+            id="chatbot-toggle"
+            class="fixed bottom-6 right-6 p-4 rounded-full shadow-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors z-50"
+          >
+            <i class="fas fa-robot text-2xl"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Dashboard View -->
+      <div id="admin-dashboard-view" class="view hidden min-h-full">
+        <div class="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
+          <!-- Sidebar -->
+          <div
+            id="admin-sidebar"
+            class="flex flex-col w-64 bg-white dark:bg-gray-800 shadow-xl"
+          >
+            <div
+              class="flex items-center justify-center h-20 shadow-lg bg-red-600/80"
+            >
+              <h1 class="text-2xl font-bold text-white">
+                <i class="fas fa-user-shield text-white mr-2"></i>Admin Panel
+              </h1>
+            </div>
+            <nav id="admin-sidebar-nav" class="flex-1 px-2 py-4 space-y-2">
+              <a
+                href="#"
+                data-view="admin-dashboard-content"
+                class="admin-sidebar-modern text-gray-700 dark:text-gray-300 active"
+              >
+                <i class="fas fa-tachometer-alt w-6 h-6 mr-3"></i>
+                Dashboard
+              </a>
+              <a
+                href="#"
+                data-view="manage-users-content"
+                class="admin-sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-users-cog w-6 h-6 mr-3"></i>
+                Manage Users
+              </a>
+              <a
+                href="#"
+                data-view="manage-billers-content"
+                class="admin-sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-building-columns w-6 h-6 mr-3"></i>
+                Manage Billers
+              </a>
+              <a
+                href="#"
+                data-view="manage-transactions-content"
+                class="admin-sidebar-modern text-gray-700 dark:text-gray-300"
+              >
+                <i class="fas fa-list-ul w-6 h-6 mr-3"></i>
+                All Transactions
+              </a>
+            </nav>
+            <div
+              class="mt-auto px-4 py-4 border-t border-gray-200 dark:border-gray-700"
+            >
+              <span
+                class="block text-sm font-semibold text-gray-600 dark:text-gray-400"
+                >Signed in as:</span
+              >
+              <span
+                id="admin-sidebar-username"
+                class="block text-lg font-bold text-gray-800 dark:text-white"
+                >Admin</span
+              >
+              <button
+                class="logout-btn w-full mt-2 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+              </button>
+            </div>
+          </div>
+          <!-- Main Content -->
+          <div id="admin-main-content" class="flex-1 p-6 overflow-y-auto">
+            <!-- Content will be loaded here dynamically -->
+          </div>
+        </div>
+      </div>
+      <!-- Modals and Notifications -->
+      <div id="notification-container"></div>
+      <!-- User Login Modal -->
       <div
         id="user-login-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-user text-white text-2xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800">Welcome Back</h2>
-            <p class="text-gray-600 mt-2">Sign in to your account</p>
-          </div>
-          <form id="user-login-form" class="space-y-6">
-            <div class="relative">
-              <i
-                class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+        <div class="glass-card w-full max-w-lg p-8">
+          <h2 class="text-3xl font-bold text-center mb-6">User Login</h2>
+          <form id="user-login-form">
+            <div class="mb-4">
               <input
                 type="text"
                 id="user-username"
-                class="form-modern pl-12"
+                name="user-username"
                 placeholder="Username"
                 required
+                class="form-modern"
               />
             </div>
-            <div class="relative">
-              <i
-                class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+            <div class="mb-6">
               <input
                 type="password"
                 id="user-password"
-                class="form-modern pl-12"
+                name="user-password"
                 placeholder="Password"
                 required
+                class="form-modern"
               />
             </div>
-            <button type="submit" class="neo-btn w-full text-lg">
-              <i class="fas fa-sign-in-alt mr-2"></i>Sign In
-            </button>
+            <button type="submit" class="neo-btn w-full">Log In</button>
           </form>
-          <p id="user-login-message" class="mt-6 text-center text-sm"></p>
-          <div class="mt-8 text-center">
-            <button
-              onclick="closeModals()"
-              class="text-gray-500 hover:text-gray-700 font-medium"
+          <div class="flex justify-center mt-4">
+            <a
+              href="#"
+              data-modal="user-register-modal"
+              class="text-sm text-gray-600 hover:text-indigo-600 transition-colors"
+              >Don't have an account? Register</a
             >
-              Close
-            </button>
           </div>
+          <button
+            class="close-modal absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl"
+          >
+            &times;
+          </button>
         </div>
       </div>
-
+      <!-- Admin Login Modal -->
       <div
         id="admin-login-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-shield-alt text-white text-2xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800">Admin Access</h2>
-            <p class="text-gray-600 mt-2">Secure administrative login</p>
-          </div>
-          <form id="admin-login-form" class="space-y-6">
-            <div class="relative">
-              <i
-                class="fas fa-user-shield absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+        <div class="glass-card w-full max-w-lg p-8">
+          <h2 class="text-3xl font-bold text-center mb-6">Admin Login</h2>
+          <form id="admin-login-form">
+            <div class="mb-4">
               <input
                 type="text"
                 id="admin-username"
-                class="form-modern pl-12"
-                placeholder="Admin Username"
+                name="admin-username"
+                placeholder="Username"
                 required
-                value="admin"
+                class="form-modern"
               />
             </div>
-            <div class="relative">
-              <i
-                class="fas fa-key absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+            <div class="mb-6">
               <input
                 type="password"
                 id="admin-password"
-                class="form-modern pl-12"
-                placeholder="Admin Password"
+                name="admin-password"
+                placeholder="Password"
                 required
-                value="admin123"
+                class="form-modern"
               />
             </div>
-            <button
-              type="submit"
-              class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1"
-            >
-              <i class="fas fa-key mr-2"></i>Admin Access
+            <button type="submit" class="neo-btn w-full">
+              Log In as Admin
             </button>
           </form>
-          <p id="admin-login-message" class="mt-6 text-center text-sm"></p>
-          <div class="mt-8 text-center">
-            <button
-              onclick="closeModals()"
-              class="text-gray-500 hover:text-gray-700 font-medium"
-            >
-              Close
-            </button>
-          </div>
+          <button
+            class="close-modal absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl"
+          >
+            &times;
+          </button>
         </div>
       </div>
-
+      <!-- User Registration Modal -->
       <div
         id="user-register-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-user-plus text-white text-2xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800">Join SmartBank</h2>
-            <p class="text-gray-600 mt-2">Create your account in seconds</p>
-          </div>
-          <form id="register-form" class="space-y-6">
-            <div class="relative">
-              <i
-                class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+        <div class="glass-card w-full max-w-lg p-8">
+          <h2 class="text-3xl font-bold text-center mb-6">Register</h2>
+          <form id="register-form">
+            <div class="mb-4">
               <input
                 type="text"
                 id="register-username"
-                class="form-modern pl-12"
-                placeholder="Choose Username"
+                name="register-username"
+                placeholder="Username"
                 required
+                class="form-modern"
               />
             </div>
-            <div class="relative">
-              <i
-                class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+            <div class="mb-4">
               <input
                 type="email"
                 id="register-email"
-                class="form-modern pl-12"
-                placeholder="Email Address"
+                name="register-email"
+                placeholder="Email"
                 required
+                class="form-modern"
               />
             </div>
-            <div class="relative">
-              <i
-                class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
+            <div class="mb-6">
               <input
                 type="password"
                 id="register-password"
-                class="form-modern pl-12"
-                placeholder="Create Password"
+                name="register-password"
+                placeholder="Password"
                 required
+                class="form-modern"
               />
             </div>
-            <button type="submit" class="neo-btn w-full text-lg">
-              <i class="fas fa-rocket mr-2"></i>Create Account
-            </button>
+            <button type="submit" class="neo-btn w-full">Register</button>
           </form>
-          <p id="register-message" class="mt-6 text-center text-sm"></p>
-          <div class="mt-8 text-center">
-            <button
-              onclick="closeModals()"
-              class="text-gray-500 hover:text-gray-700 font-medium"
+          <div class="flex justify-center mt-4">
+            <a
+              href="#"
+              data-modal="user-login-modal"
+              class="text-sm text-gray-600 hover:text-indigo-600 transition-colors"
+              >Already have an account? Login</a
             >
-              Close
-            </button>
           </div>
+          <button
+            class="close-modal absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl"
+          >
+            &times;
+          </button>
         </div>
       </div>
-
       <!-- 2FA Modal -->
       <div
         id="tfa-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow"
-            >
-              <i class="fas fa-mobile-alt text-white text-2xl"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-800">
-              Two-Factor Authentication
-            </h2>
-            <p class="text-gray-600 mt-2">
-              A verification code has been sent to your email.
-            </p>
-          </div>
-          <div class="flex justify-center space-x-3 mb-8">
+        <div class="glass-card w-full max-w-lg p-8">
+          <h2 class="text-3xl font-bold text-center mb-6">Verify 2FA</h2>
+          <p class="text-center text-gray-600 mb-4">
+            A 6-digit code has been sent to your email.
+          </p>
+          <div class="mb-6">
             <input
               type="text"
-              maxlength="6"
               id="tfa-code"
-              class="form-modern text-center tracking-[1em] text-2xl font-bold w-48"
-              placeholder="000000"
+              placeholder="Enter 2FA Code"
+              required
+              class="form-modern"
             />
           </div>
-          <button onclick="verify2FA()" class="neo-btn w-full">
-            <i class="fas fa-check-circle mr-2"></i>Verify Code
-          </button>
-        </div>
-      </div>
-
-      <!-- User Dashboard -->
-      <div id="user-dashboard" class="h-full hidden">
-        <div class="flex h-full">
-          <nav
-            class="w-80 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-gray-300 flex flex-col relative overflow-hidden"
-          >
-            <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10">
-              <div
-                class="absolute top-0 left-0 w-full h-full"
-                style="
-                  background-image: radial-gradient(
-                      circle at 25% 25%,
-                      #4f46e5 0%,
-                      transparent 50%
-                    ),
-                    radial-gradient(
-                      circle at 75% 75%,
-                      #7c3aed 0%,
-                      transparent 50%
-                    );
-                "
-              ></div>
-            </div>
-
-            <div class="relative p-8 border-b border-gray-700/50">
-              <div class="flex items-center">
-                <div
-                  class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center animate-pulse-glow"
-                >
-                  <i class="fas fa-university text-white text-xl"></i>
-                </div>
-                <div class="ml-4">
-                  <h1 class="text-xl font-bold text-white">SmartBank</h1>
-                  <p class="text-sm text-gray-400">User Portal</p>
-                </div>
-              </div>
-              <div
-                class="mt-6 p-4 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl"
-              >
-                <p class="text-xs text-gray-300">Welcome back,</p>
-                <p id="sidebar-username" class="font-bold text-white text-lg">
-                  User
-                </p>
-              </div>
-            </div>
-
-            <ul class="flex-grow p-6 space-y-2" id="user-sidebar-nav">
-              <li>
-                <a
-                  href="#"
-                  class="sidebar-modern active"
-                  data-view="user-dashboard-content"
-                >
-                  <i class="fas fa-tachometer-alt w-6 text-center mr-4"></i>
-                  <span class="font-medium">Dashboard</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="sidebar-modern"
-                  data-view="user-transactions-content"
-                >
-                  <i class="fas fa-exchange-alt w-6 text-center mr-4"></i>
-                  <span class="font-medium">Transactions</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="sidebar-modern"
-                  data-view="user-billpay-content"
-                >
-                  <i
-                    class="fas fa-file-invoice-dollar w-6 text-center mr-4"
-                  ></i>
-                  <span class="font-medium">Bill Payment</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="sidebar-modern"
-                  data-view="user-profile-content"
-                >
-                  <i class="fas fa-user-circle w-6 text-center mr-4"></i>
-                  <span class="font-medium">Profile</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="sidebar-modern"
-                  data-view="user-settings-content"
-                >
-                  <i class="fas fa-cog w-6 text-center mr-4"></i>
-                  <span class="font-medium">Settings</span>
-                </a>
-              </li>
-            </ul>
-
-            <div class="relative p-6 border-t border-gray-700/50">
-              <button
-                onclick="logout()"
-                class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
-              >
-                <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
-              </button>
-            </div>
-          </nav>
-
-          <main class="flex-1 bg-gray-50 overflow-y-auto">
-            <div class="p-8" id="user-main-content"></div>
-          </main>
-        </div>
-      </div>
-
-      <!-- Admin Dashboard -->
-      <div id="admin-dashboard" class="h-full hidden">
-        <div class="flex h-full">
-          <nav
-            class="w-80 bg-gradient-to-b from-red-900 via-red-800 to-red-900 text-gray-300 flex flex-col relative overflow-hidden"
-          >
-            <div class="absolute inset-0 opacity-10">
-              <div
-                class="absolute top-0 left-0 w-full h-full"
-                style="
-                  background-image: radial-gradient(
-                      circle at 25% 25%,
-                      #dc2626 0%,
-                      transparent 50%
-                    ),
-                    radial-gradient(
-                      circle at 75% 75%,
-                      #e11d48 0%,
-                      transparent 50%
-                    );
-                "
-              ></div>
-            </div>
-
-            <div class="relative p-8 border-b border-red-700/50">
-              <div class="flex items-center">
-                <div
-                  class="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center animate-pulse-glow"
-                >
-                  <i class="fas fa-shield-alt text-white text-xl"></i>
-                </div>
-                <div class="ml-4">
-                  <h1 class="text-xl font-bold text-white">SmartBank</h1>
-                  <p class="text-sm text-gray-400">Admin Control</p>
-                </div>
-              </div>
-            </div>
-
-            <ul class="flex-grow p-6 space-y-2" id="admin-sidebar-nav">
-              <li>
-                <a
-                  href="#"
-                  class="admin-sidebar-modern active"
-                  data-view="admin-dashboard-content"
-                >
-                  <i class="fas fa-tachometer-alt w-6 text-center mr-4"></i>
-                  <span class="font-medium">Overview</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="admin-sidebar-modern"
-                  data-view="admin-users-content"
-                >
-                  <i class="fas fa-users w-6 text-center mr-4"></i>
-                  <span class="font-medium">Users</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="admin-sidebar-modern"
-                  data-view="admin-transactions-content"
-                >
-                  <i class="fas fa-exchange-alt w-6 text-center mr-4"></i>
-                  <span class="font-medium">Transactions</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="admin-sidebar-modern"
-                  data-view="admin-reports-content"
-                >
-                  <i class="fas fa-chart-line w-6 text-center mr-4"></i>
-                  <span class="font-medium">Reports</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="admin-sidebar-modern"
-                  data-view="admin-security-content"
-                >
-                  <i class="fas fa-lock w-6 text-center mr-4"></i>
-                  <span class="font-medium">Security</span>
-                </a>
-              </li>
-            </ul>
-
-            <div class="relative p-6 border-t border-red-700/50">
-              <button
-                onclick="logout()"
-                class="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
-              >
-                <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
-              </button>
-            </div>
-          </nav>
-
-          <main class="flex-1 bg-gray-50 overflow-y-auto">
-            <div class="p-8" id="admin-main-content"></div>
-          </main>
-        </div>
-      </div>
-
-      <!-- Enhanced AI Chatbot -->
-      <div id="chatbot-container" class="fixed bottom-8 right-8 z-40 hidden">
-        <button
-          id="chatbot-toggle"
-          class="w-20 h-20 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 animate-pulse-glow"
-        >
-          <i class="fas fa-robot text-3xl"></i>
-          <div
-            class="absolute -top-2 -right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-ping"
-          >
-            <i class="fas fa-circle text-xs"></i>
-          </div>
-        </button>
-        <div
-          id="chatbot-window"
-          class="hidden absolute bottom-24 right-0 w-96 h-[32rem] glass-card flex flex-col animate-fade-scale"
-        >
-          <div
-            class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-3xl flex items-center justify-between"
-          >
-            <div class="flex items-center">
-              <div
-                class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3"
-              >
-                <i class="fas fa-robot"></i>
-              </div>
-              <div>
-                <span class="font-bold text-lg">SmartBot</span>
-                <div class="flex items-center text-sm text-indigo-100">
-                  <div
-                    class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-ping"
-                  ></div>
-                  Online
-                </div>
-              </div>
-            </div>
-            <button
-              id="chatbot-close"
-              class="text-white/80 hover:text-white transition-colors"
-            >
-              <i class="fas fa-times text-lg"></i>
-            </button>
-          </div>
-          <div
-            id="chat-messages"
-            class="p-6 flex-grow overflow-y-auto bg-gradient-to-b from-gray-50 to-white"
-          >
-            <div class="chat-bubble chat-bot mb-4">
-              <div class="flex items-start">
-                <div
-                  class="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-3 flex-shrink-0"
-                >
-                  <i class="fas fa-robot text-white text-sm"></i>
-                </div>
-                <div>
-                  <p class="font-medium text-gray-800 mb-1">SmartBot</p>
-                  <p class="text-gray-600">
-                    Hello! I'm your AI banking assistant. How can I help you
-                    today?
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="p-6 border-t bg-white rounded-b-3xl">
-            <div class="flex space-x-3">
-              <input
-                type="text"
-                id="chat-input"
-                class="flex-1 form-modern py-3"
-                placeholder="Ask me anything..."
-              />
-              <button id="send-message" class="neo-btn px-6 py-3">
-                <i class="fas fa-paper-plane"></i>
-              </button>
-            </div>
-            <div class="flex space-x-2 mt-3">
-              <button
-                onclick="quickChat('Check my balance')"
-                class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full transition-colors"
-              >
-                Balance
-              </button>
-              <button
-                onclick="quickChat('Show recent transactions')"
-                class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full transition-colors"
-              >
-                Transactions
-              </button>
-              <button
-                onclick="quickChat('Help with bill payment')"
-                class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full transition-colors"
-              >
-                Bills
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading Overlay -->
-      <div
-        id="loading-overlay"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-50"
-      >
-        <div class="text-center">
-          <div class="spinner-modern mx-auto mb-4"></div>
-          <p class="text-white text-lg font-medium">Processing...</p>
-        </div>
-      </div>
-
-      <!-- Notification Container -->
-      <div
-        id="notification-container"
-        class="fixed top-6 right-6 z-50 space-y-4"
-      ></div>
-
-      <!-- Templates -->
-      <template id="user-dashboard-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-2 animate-slide-up">
-            Welcome back,
-            <span
-              id="dashboard-username"
-              class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-              >User</span
-            >!
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Here's your financial overview for today
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <!-- Main Content -->
-          <div class="xl:col-span-2 space-y-8">
-            <!-- Balance Card -->
-            <div
-              class="card-modern balance-card text-white relative overflow-hidden"
-            >
-              <div class="relative z-10">
-                <div class="flex items-center justify-between mb-6">
-                  <div>
-                    <p class="text-white/80 text-sm font-medium">
-                      Total Balance
-                    </p>
-                    <p id="account-balance" class="text-5xl font-black">
-                      $0.00
-                    </p>
-                  </div>
-                  <div
-                    class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center"
-                  >
-                    <i class="fas fa-wallet text-2xl"></i>
-                  </div>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-white/80 text-sm">Account Number</p>
-                    <p id="account-number" class="font-bold text-lg">
-                      ••••••••••
-                    </p>
-                  </div>
-                  <div class="flex space-x-2">
-                    <div
-                      class="w-2 h-2 bg-white rounded-full animate-ping"
-                    ></div>
-                    <div class="w-2 h-2 bg-white/60 rounded-full"></div>
-                    <div class="w-2 h-2 bg-white/30 rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="card-modern">
-              <h3
-                class="text-2xl font-bold text-gray-800 mb-6 flex items-center"
-              >
-                <i class="fas fa-bolt text-yellow-500 mr-3"></i>
-                Quick Transfer
-              </h3>
-              <form
-                id="transaction-form"
-                class="grid grid-cols-1 lg:grid-cols-4 gap-4"
-              >
-                <div class="relative">
-                  <i
-                    class="fas fa-university absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                  <input
-                    type="text"
-                    id="to-account"
-                    class="form-modern pl-12"
-                    placeholder="Recipient Account"
-                    required
-                  />
-                </div>
-                <div class="relative">
-                  <i
-                    class="fas fa-dollar-sign absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                  <input
-                    type="number"
-                    id="amount"
-                    class="form-modern pl-12"
-                    placeholder="Amount"
-                    step="0.01"
-                    min="0.01"
-                    required
-                  />
-                </div>
-                <div class="relative">
-                  <i
-                    class="fas fa-comment absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  ></i>
-                  <input
-                    type="text"
-                    id="description"
-                    class="form-modern pl-12"
-                    placeholder="Description (optional)"
-                  />
-                </div>
-                <button type="submit" class="neo-btn h-14">
-                  <i class="fas fa-paper-plane mr-2"></i>Send
-                </button>
-              </form>
-              <p id="transaction-message" class="text-sm mt-4"></p>
-            </div>
-
-            <!-- Recent Activity -->
-            <div class="card-modern">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-800 flex items-center">
-                  <i class="fas fa-history text-blue-500 mr-3"></i>
-                  Recent Activity
-                </h3>
-                <button
-                  onclick="loadViewContent('user-transactions-content', 'user-main-content')"
-                  class="text-indigo-600 hover:text-indigo-700 font-medium"
-                >
-                  View All <i class="fas fa-arrow-right ml-1"></i>
-                </button>
-              </div>
-              <div id="recent-transactions" class="space-y-4">
-                <!-- Will be populated -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Sidebar -->
-          <div class="space-y-8">
-            <!-- Spending Insights -->
-            <div class="card-modern">
-              <h3
-                class="text-xl font-bold text-gray-800 mb-6 flex items-center"
-              >
-                <i class="fas fa-chart-pie text-green-500 mr-3"></i>
-                Spending Insights
-              </h3>
-              <div class="relative">
-                <canvas id="spending-chart" class="max-h-64"></canvas>
-                <p
-                  id="spending-chart-fallback"
-                  class="text-center text-gray-500 hidden py-8"
-                >
-                  <i
-                    class="fas fa-chart-pie text-4xl text-gray-300 mb-4 block"
-                  ></i>
-                  No spending data yet
-                </p>
-              </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="card-modern">
-              <h3 class="text-xl font-bold text-gray-800 mb-6">Quick Stats</h3>
-              <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-600">This Month</span>
-                  <span class="font-bold text-green-600">+$2,450</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-600">Transactions</span>
-                  <span class="font-bold text-blue-600" id="transaction-count"
-                    >0</span
-                  >
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-gray-600">Avg. Transaction</span>
-                  <span class="font-bold text-purple-600" id="avg-transaction"
-                    >$0</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template id="user-transactions-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Transaction History
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Track all your financial activities
-          </p>
-        </div>
-
-        <!-- Filters -->
-        <div class="card-modern mb-8">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select id="filter-type" class="form-modern">
-              <option value="">All Types</option>
-              <option value="Transfer">Transfers</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Internet">Internet</option>
-              <option value="Insurance">Insurance</option>
-            </select>
-            <input type="date" id="filter-from" class="form-modern" />
-            <input type="date" id="filter-to" class="form-modern" />
-            <button onclick="applyFilters()" class="neo-btn">
-              <i class="fas fa-filter mr-2"></i>Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="card-modern">
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Transaction
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Type
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Amount
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Date
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="transaction-history" class="divide-y divide-gray-200">
-                <!-- Transactions will be populated here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </template>
-
-      <template id="user-billpay-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Bill Payment
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Pay your bills quickly and securely
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <i class="fas fa-file-invoice-dollar text-green-500 mr-3"></i>
-              Pay Bill
-            </h3>
-            <form id="billpay-form" class="space-y-6">
-              <div class="relative">
-                <i
-                  class="fas fa-building absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <select id="biller-select" class="form-modern pl-12" required>
-                  <option value="" disabled selected>Choose a biller...</option>
-                </select>
-              </div>
-              <div class="relative">
-                <i
-                  class="fas fa-dollar-sign absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <input
-                  type="number"
-                  id="bill-amount"
-                  class="form-modern pl-12"
-                  placeholder="Amount to pay"
-                  step="0.01"
-                  min="0.01"
-                  required
-                />
-              </div>
-              <div class="relative">
-                <i
-                  class="fas fa-calendar absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <input type="date" id="bill-date" class="form-modern pl-12" />
-              </div>
-              <button type="submit" class="neo-btn w-full text-lg">
-                <i class="fas fa-credit-card mr-2"></i>Pay Now
-              </button>
-            </form>
-            <p id="billpay-message" class="text-sm mt-4 text-center"></p>
-          </div>
-
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Saved Billers</h3>
-            <div id="saved-billers" class="space-y-4">
-              <!-- Will be populated with saved billers -->
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template id="user-profile-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Profile Settings
-          </h1>
-          <p class="text-gray-600 text-lg">Manage your account information</p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">
-              Personal Information
-            </h3>
-            <form id="profile-form" class="space-y-6">
-              <div class="relative">
-                <i
-                  class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <input
-                  type="text"
-                  id="profile-username"
-                  class="form-modern pl-12"
-                  placeholder="Username"
-                  readonly
-                />
-              </div>
-              <div class="relative">
-                <i
-                  class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <input
-                  type="email"
-                  id="profile-email"
-                  class="form-modern pl-12"
-                  placeholder="Email"
-                />
-              </div>
-              <div class="relative">
-                <i
-                  class="fas fa-phone absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-                ></i>
-                <input
-                  type="tel"
-                  id="profile-phone"
-                  class="form-modern pl-12"
-                  placeholder="Phone Number"
-                />
-              </div>
-              <button type="submit" class="neo-btn">
-                <i class="fas fa-save mr-2"></i>Save Changes
-              </button>
-            </form>
-          </div>
-
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">
-              Security Settings
-            </h3>
-            <div class="space-y-6">
-              <div
-                class="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
-              >
-                <div>
-                  <p class="font-semibold text-gray-800">
-                    Two-Factor Authentication
-                  </p>
-                  <p class="text-sm text-gray-600">
-                    Add an extra layer of security
-                  </p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="2fa-toggle" class="sr-only peer" />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"
-                  ></div>
-                </label>
-              </div>
-              <button
-                class="w-full bg-red-100 hover:bg-red-200 text-red-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
-              >
-                <i class="fas fa-key mr-2"></i>Change Password
-              </button>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template id="user-settings-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Settings
-          </h1>
-          <p class="text-gray-600 text-lg">Customize your banking experience</p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Preferences</h3>
-            <div class="space-y-6">
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="font-semibold text-gray-800">Dark Mode</p>
-                  <p class="text-sm text-gray-600">Switch to dark theme</p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="dark-mode-toggle"
-                    class="sr-only peer"
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"
-                  ></div>
-                </label>
-              </div>
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="font-semibold text-gray-800">Email Notifications</p>
-                  <p class="text-sm text-gray-600">
-                    Receive transaction alerts
-                  </p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="email-notifications"
-                    class="sr-only peer"
-                    checked
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"
-                  ></div>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Export Data</h3>
-            <div class="space-y-4">
-              <button class="w-full neo-btn">
-                <i class="fas fa-download mr-2"></i>Download Statements
-              </button>
-              <button
-                class="w-full bg-green-100 hover:bg-green-200 text-green-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
-              >
-                <i class="fas fa-file-csv mr-2"></i>Export CSV
-              </button>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <!-- Admin Templates -->
-      <template id="admin-dashboard-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Admin Dashboard
-          </h1>
-          <p class="text-gray-600 text-lg">System overview and management</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          <div
-            class="card-modern bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-blue-100 text-sm">Total Users</p>
-                <p id="total-users" class="text-3xl font-black">0</p>
-              </div>
-              <i class="fas fa-users text-3xl text-blue-200"></i>
-            </div>
-          </div>
-          <div
-            class="card-modern bg-gradient-to-br from-green-500 to-green-600 text-white"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-green-100 text-sm">Total Accounts</p>
-                <p id="total-accounts" class="text-3xl font-black">0</p>
-              </div>
-              <i class="fas fa-university text-3xl text-green-200"></i>
-            </div>
-          </div>
-          <div
-            class="card-modern bg-gradient-to-br from-purple-500 to-purple-600 text-white"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-purple-100 text-sm">Transactions Today</p>
-                <p id="transactions-today" class="text-3xl font-black">0</p>
-              </div>
-              <i class="fas fa-exchange-alt text-3xl text-purple-200"></i>
-            </div>
-          </div>
-          <div
-            class="card-modern bg-gradient-to-br from-red-500 to-red-600 text-white"
-          >
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-red-100 text-sm">Security Alerts</p>
-                <p id="security-alerts" class="text-3xl font-black">0</p>
-              </div>
-              <i class="fas fa-shield-alt text-3xl text-red-200"></i>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">
-              Recent Activity
-            </h3>
-            <div id="admin-recent-activity" class="space-y-4">
-              <!-- Will be populated -->
-            </div>
-          </div>
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">System Status</h3>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">API Status</span>
-                <span class="flex items-center text-green-600 font-semibold">
-                  <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  Online
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">Database</span>
-                <span class="flex items-center text-green-600 font-semibold">
-                  <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  Connected
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">AI Services</span>
-                <span class="flex items-center text-green-600 font-semibold">
-                  <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  Active
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template id="admin-users-template">
-        <div class="flex justify-between items-center mb-8">
-          <div>
-            <h1 class="text-4xl font-black text-gray-800 mb-2 animate-slide-up">
-              User Management
-            </h1>
-            <p class="text-gray-600 text-lg">Manage all system users</p>
-          </div>
+          <button id="verify-2fa-btn" class="neo-btn w-full">Verify</button>
           <button
-            onclick="showModal('admin-create-user-modal')"
-            class="neo-btn"
+            class="close-modal absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl"
           >
-            <i class="fas fa-plus mr-2"></i>Create User
+            &times;
           </button>
         </div>
-
-        <div class="card-modern">
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    User
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Status
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Created By
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Member Since
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="users-table-body" class="divide-y divide-gray-200">
-                <!-- Users will be populated here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </template>
-
-      <template id="admin-transactions-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            All Transactions
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Monitor and manage all system transactions
-          </p>
-        </div>
-
-        <div class="card-modern">
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Transaction Details
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Amount
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Date
-                  </th>
-                  <th
-                    class="px-6 py-4 text-left text-sm font-semibold text-gray-900"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                id="admin-transactions-body"
-                class="divide-y divide-gray-200"
-              >
-                <!-- Transactions will be populated here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </template>
-
-      <template id="admin-reports-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Reports & Analytics
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Generate comprehensive system reports
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">
-              Export Reports
-            </h3>
-            <div class="space-y-4">
-              <button id="download-report-btn" class="neo-btn w-full">
-                <i class="fas fa-download mr-2"></i>Transaction Report (CSV)
-              </button>
-              <button
-                class="w-full bg-green-100 hover:bg-green-200 text-green-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
-              >
-                <i class="fas fa-file-pdf mr-2"></i>User Report (PDF)
-              </button>
-              <button
-                class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-4 rounded-2xl font-semibold transition-all duration-300"
-              >
-                <i class="fas fa-chart-bar mr-2"></i>Analytics Report
-              </button>
-            </div>
-          </div>
-
-          <div class="card-modern">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Quick Stats</h3>
-            <div class="space-y-4">
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">Total Volume</span>
-                <span class="font-bold text-2xl text-green-600">$125,430</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">Active Users</span>
-                <span class="font-bold text-2xl text-blue-600">342</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">Success Rate</span>
-                <span class="font-bold text-2xl text-green-600">99.8%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template id="admin-security-template">
-        <div class="mb-8">
-          <h1 class="text-4xl font-black text-gray-800 mb-4 animate-slide-up">
-            Security Center
-          </h1>
-          <p class="text-gray-600 text-lg">
-            Monitor system security and threats
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div class="xl:col-span-2">
-            <div class="card-modern mb-8">
-              <h3 class="text-2xl font-bold text-gray-800 mb-6">
-                Security Alerts
-              </h3>
-              <div class="space-y-4">
-                <div
-                  class="flex items-center p-4 bg-red-50 border border-red-200 rounded-xl"
-                >
-                  <div
-                    class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4"
-                  >
-                    <i class="fas fa-exclamation-triangle text-red-600"></i>
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-red-800">
-                      Failed Login Attempts
-                    </p>
-                    <p class="text-sm text-red-600">
-                      Multiple failed attempts from IP 192.168.1.100
-                    </p>
-                  </div>
-                  <span class="text-xs text-red-500">2 min ago</span>
-                </div>
-                <div
-                  class="flex items-center p-4 bg-yellow-50 border border-yellow-200 rounded-xl"
-                >
-                  <div
-                    class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-4"
-                  >
-                    <i class="fas fa-shield-alt text-yellow-600"></i>
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-yellow-800">
-                      Security Update Available
-                    </p>
-                    <p class="text-sm text-yellow-600">
-                      System security patch ready for deployment
-                    </p>
-                  </div>
-                  <span class="text-xs text-yellow-500">1 hr ago</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-modern">
-              <h3 class="text-2xl font-bold text-gray-800 mb-6">Access Logs</h3>
-              <div class="overflow-x-auto">
-                <table class="min-w-full">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th
-                        class="px-4 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        User
-                      </th>
-                      <th
-                        class="px-4 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Action
-                      </th>
-                      <th
-                        class="px-4 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        IP Address
-                      </th>
-                      <th
-                        class="px-4 py-3 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Time
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-200">
-                    <tr>
-                      <td class="px-4 py-3 text-sm">admin</td>
-                      <td class="px-4 py-3 text-sm">Login</td>
-                      <td class="px-4 py-3 text-sm">127.0.0.1</td>
-                      <td class="px-4 py-3 text-sm">2 min ago</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div class="card-modern mb-8">
-              <h3 class="text-xl font-bold text-gray-800 mb-6">
-                Security Status
-              </h3>
-              <div class="space-y-4">
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">Firewall</span>
-                  <span class="flex items-center text-green-600 font-semibold">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    Active
-                  </span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">Encryption</span>
-                  <span class="flex items-center text-green-600 font-semibold">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    256-bit SSL
-                  </span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-gray-600">2FA</span>
-                  <span class="flex items-center text-green-600 font-semibold">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    Enabled
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-modern">
-              <h3 class="text-xl font-bold text-gray-800 mb-6">
-                Quick Actions
-              </h3>
-              <div class="space-y-3">
-                <button
-                  class="w-full bg-red-100 hover:bg-red-200 text-red-700 px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                >
-                  <i class="fas fa-ban mr-2"></i>Block IP
-                </button>
-                <button
-                  class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                >
-                  <i class="fas fa-sync mr-2"></i>Force Logout All
-                </button>
-                <button
-                  class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-3 rounded-xl font-semibold transition-all duration-300"
-                >
-                  <i class="fas fa-download mr-2"></i>Export Logs
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <!-- Additional Modals -->
-      <div
-        id="admin-create-user-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
-      >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-user-plus text-white text-2xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800">Create New User</h2>
-            <p class="text-gray-600 mt-2">Add a new user to the system</p>
-          </div>
-          <form id="admin-create-user-form" class="space-y-6">
-            <div class="relative">
-              <i
-                class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
-              <input
-                type="text"
-                id="create-username"
-                class="form-modern pl-12"
-                placeholder="Username"
-                required
-              />
-            </div>
-            <div class="relative">
-              <i
-                class="fas fa-envelope absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
-              <input
-                type="email"
-                id="create-email"
-                class="form-modern pl-12"
-                placeholder="Email Address"
-                required
-              />
-            </div>
-            <div class="relative">
-              <i
-                class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
-              <input
-                type="password"
-                id="create-password"
-                class="form-modern pl-12"
-                placeholder="Initial Password"
-                required
-              />
-            </div>
-            <button type="submit" class="neo-btn w-full text-lg">
-              <i class="fas fa-plus mr-2"></i>Create User
-            </button>
-          </form>
-          <p
-            id="admin-create-user-message"
-            class="mt-6 text-center text-sm"
-          ></p>
-          <div class="mt-8 text-center">
-            <button
-              onclick="closeModals()"
-              class="text-gray-500 hover:text-gray-700 font-medium"
-            >
-              Close
-            </button>
-          </div>
-        </div>
       </div>
-
+      <!-- Confirm Delete Modal -->
       <div
-        id="edit-transaction-modal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50"
+        id="confirm-delete-modal"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
-        <div class="glass-card max-w-md w-full mx-4 animate-fade-scale">
-          <div class="text-center mb-8">
-            <div
-              class="w-16 h-16 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <i class="fas fa-edit text-white text-2xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800">Edit Transaction</h2>
-          </div>
-          <form id="edit-transaction-form" class="space-y-6">
-            <input type="hidden" id="edit-tx-id" />
-            <div class="relative">
-              <i
-                class="fas fa-comment absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
-              <input
-                type="text"
-                id="edit-tx-description"
-                class="form-modern pl-12"
-                placeholder="Description"
-                required
-              />
-            </div>
-            <div class="relative">
-              <i
-                class="fas fa-tag absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-              ></i>
-              <input
-                type="text"
-                id="edit-tx-type"
-                class="form-modern pl-12"
-                placeholder="Type"
-                required
-              />
-            </div>
-            <button type="submit" class="neo-btn w-full text-lg">
-              <i class="fas fa-save mr-2"></i>Save Changes
-            </button>
-          </form>
-          <div class="mt-8 text-center">
+        <div class="glass-card w-full max-w-sm p-8 text-center">
+          <h2 class="text-2xl font-bold mb-4">Confirm Deletion</h2>
+          <p class="text-gray-600 mb-6">
+            Are you sure you want to delete this user? This action cannot be
+            undone.
+          </p>
+          <div class="flex justify-center gap-4">
             <button
-              onclick="closeModals()"
-              class="text-gray-500 hover:text-gray-700 font-medium"
+              id="confirm-delete-btn"
+              class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              id="cancel-delete-btn"
+              class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors close-modal"
             >
               Cancel
             </button>
           </div>
         </div>
       </div>
+      <!-- Main Chatbot Container -->
+      <div
+        id="chatbot-window"
+        class="fixed bottom-24 right-6 w-full max-w-sm h-[60vh] bg-white rounded-xl shadow-2xl flex flex-col hidden z-50 overflow-hidden"
+      >
+        <!-- Header -->
+        <header
+          class="bg-blue-600 text-white p-4 rounded-t-xl flex items-center justify-between"
+        >
+          <div class="flex items-center space-x-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-8 h-8 text-white"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6a.75.75 0 0 0 .75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <h1 class="text-2xl font-bold">Gemini Chat</h1>
+          </div>
+          <button id="chatbot-close" class="text-white hover:text-gray-200">
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+
+        <!-- Chat Log Display -->
+        <div
+          id="chat-container"
+          class="flex-grow p-6 overflow-y-auto chat-container flex flex-col space-y-4 bg-gray-50"
+        >
+          <!-- Initial Bot Message -->
+          <div class="flex items-start space-x-3 pr-8">
+            <div
+              class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  d="M11.25 4.507A4.5 4.5 0 0 0 9 2.25H7.5a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 .75.75h.75c.954 0 1.837.568 2.25 1.442v10.316a.75.75 0 0 0-.75.75 2.25 2.25 0 0 1-4.5 0 .75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5A4.5 4.5 0 0 0 9 19.5a.75.75 0 0 0 .75.75h.75a.75.75 0 0 0 .75-.75v-2.25a.75.75 0 0 0-.75-.75h-.75A2.25 2.25 0 0 1 6 15a.75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5a4.5 4.5 0 0 0 4.5 4.5h2.25a.75.75 0 0 0 .75-.75V2.25a.75.75 0 0 0-.75-.75h-2.25a.75.75 0 0 0-.75.75V4.5A.75.75 0 0 1 9.75 5.25H11.25V4.507ZM21.75 3a.75.75 0 0 0-.75.75v16.5a.75.75 0 0 0 1.5 0V3.75a.75.75 0 0 0-.75-.75Z"
+                />
+              </svg>
+            </div>
+            <div
+              class="bg-gray-200 text-gray-800 p-4 rounded-2xl rounded-tl-none max-w-[85%]"
+            >
+              <p>
+                Hello! I am a simple chatbot powered by Gemini. How can I help
+                you today?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div
+          id="typing-indicator"
+          class="flex items-start space-x-3 p-4 hidden"
+        >
+          <div
+            class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                d="M11.25 4.507A4.5 4.5 0 0 0 9 2.25H7.5a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 .75.75h.75c.954 0 1.837.568 2.25 1.442v10.316a.75.75 0 0 0-.75.75 2.25 2.25 0 0 1-4.5 0 .75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5A4.5 4.5 0 0 0 9 19.5a.75.75 0 0 0 .75.75h.75a.75.75 0 0 0 .75-.75v-2.25a.75.75 0 0 0-.75-.75h-.75A2.25 2.25 0 0 1 6 15a.75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5a4.5 4.5 0 0 0 4.5 4.5h2.25a.75.75 0 0 0 .75-.75V2.25a.75.75 0 0 0-.75-.75h-2.25a.75.75 0 0 0-.75.75V4.5A.75.75 0 0 1 9.75 5.25H11.25V4.507ZM21.75 3a.75.75 0 0 0-.75.75v16.5a.75.75 0 0 0 1.5 0V3.75a.75.75 0 0 0-.75-.75Z"
+              />
+            </svg>
+          </div>
+          <div class="p-3 bg-gray-200 rounded-2xl rounded-tl-none">
+            <div class="flex space-x-1">
+              <span
+                class="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
+                style="animation-delay: -0.32s"
+              ></span>
+              <span
+                class="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
+                style="animation-delay: -0.16s"
+              ></span>
+              <span
+                class="h-2 w-2 bg-gray-400 rounded-full animate-bounce"
+              ></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Input and Send Message Form -->
+        <form
+          id="chat-form"
+          class="p-4 border-t border-gray-200 bg-white flex items-center space-x-4"
+        >
+          <input
+            type="text"
+            id="user-input"
+            placeholder="Type a message..."
+            required
+            class="flex-grow p-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          />
+          <button
+            type="submit"
+            id="send-btn"
+            class="bg-blue-600 text-white rounded-full p-3 shadow-md hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-6 h-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+              />
+            </svg>
+          </button>
+        </form>
+      </div>
     </div>
-
     <script>
-      // Enhanced State Management
-      const state = {
-        token: localStorage.getItem("token"),
-        username: localStorage.getItem("username"),
-        isAdmin: localStorage.getItem("isAdmin") === "true",
-        pendingUserId: null, // For 2FA flow
-        account: null,
-        spendingChart: null,
-        darkMode: localStorage.getItem("darkMode") === "true",
-      };
-
-      // DOM Elements
-      const views = {
-        homepage: document.getElementById("homepage-view"),
-        userDashboard: document.getElementById("user-dashboard"),
-        adminDashboard: document.getElementById("admin-dashboard"),
-      };
-
-      const modals = document.querySelectorAll(".fixed.inset-0");
-      const loadingOverlay = document.getElementById("loading-overlay");
-
-      // Enhanced API Request with better error handling
-      async function apiRequest(endpoint, method = "GET", body = null) {
-        showLoading(true);
-        const headers = { "Content-Type": "application/json" };
-        if (state.token) headers["x-access-token"] = state.token;
-
-        try {
-          const response = await fetch(`/api${endpoint}`, {
-            method,
-            headers,
-            body: body ? JSON.stringify(body) : null,
-          });
-
-          const data = await response.json();
-
-          if (response.status === 401) {
-            logout();
-            showNotification(
-              data.message || "Session expired. Please login again.",
-              "error"
-            );
-            return { ok: false, data };
-          }
-
-          return { ok: response.ok, data };
-        } catch (error) {
-          console.error("API Request Error:", error);
-          showNotification(
-            "Network error. Please check your connection.",
-            "error"
-          );
-          return { ok: false, data: { message: "Network error" } };
-        } finally {
-          showLoading(false);
-        }
+      /**
+       * Makes a specific modal visible on the screen.
+       * @param {string} modalId The ID of the modal element to show.
+       */
+      function showModal(modalId) {
+        document.getElementById(modalId)?.classList.remove("hidden");
       }
 
-      // Enhanced Notification System
-      function showNotification(message, type = "info", duration = 5000) {
+      /**
+       * Hides all visible modals.
+       */
+      function closeModals() {
+        document.querySelectorAll(".modal").forEach((modal) => {
+          modal.classList.add("hidden");
+        });
+      }
+
+      /**
+       * Displays a temporary notification message on the screen.
+       * @param {string} message The message to display.
+       * @param {'info' | 'success' | 'error'} type The type of notification, which affects its color.
+       * @param {number} duration The time in milliseconds before the notification disappears.
+       */
+      function showNotification(message, type = "info", duration = 4000) {
         const container = document.getElementById("notification-container");
+        if (!container) return;
+
         const notification = document.createElement("div");
         notification.className = `notification ${type} animate-slide-right`;
+
+        const iconClass =
+          type === "success"
+            ? "fa-check-circle"
+            : type === "error"
+            ? "fa-exclamation-triangle"
+            : "fa-info-circle";
+
         notification.innerHTML = `
                 <div class="flex items-center">
-                    <i class="fas fa-${
-                      type === "success"
-                        ? "check-circle"
-                        : type === "error"
-                        ? "exclamation-circle"
-                        : "info-circle"
-                    } mr-3"></i>
+                    <i class="fas ${iconClass} mr-3"></i>
                     <span>${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white/80 hover:text-white">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button class="ml-auto text-white/70 hover:text-white close-notification">&times;</button>
                 </div>
             `;
+
+        const closeButton = notification.querySelector(".close-notification");
+        closeButton.onclick = () => notification.remove();
 
         container.appendChild(notification);
 
@@ -2044,528 +951,967 @@
         }, duration);
       }
 
-      // Enhanced Loading Management
-      function showLoading(show = true) {
-        if (show) {
-          loadingOverlay.classList.remove("hidden");
-        } else {
-          loadingOverlay.classList.add("hidden");
-        }
-      }
-
-      // View Management
+      /**
+       * Manages which main view is visible on the single-page application.
+       * Hides all other views and shows the one with the specified ID.
+       * @param {string} viewId The ID of the view element to display (e.g., 'homepage-view').
+       */
       function showView(viewId) {
-        Object.values(views).forEach((v) => v.classList.add("hidden"));
-        if (views[viewId]) {
-          views[viewId].classList.remove("hidden");
+        document.querySelectorAll(".view").forEach((view) => {
+          view.classList.add("hidden");
+        });
+        const viewToShow = document.getElementById(viewId);
+        if (viewToShow) {
+          viewToShow.classList.remove("hidden");
+        } else {
+          console.error(`View with id "${viewId}" not found.`);
+          // Fallback to homepage if view is not found to prevent a blank screen.
+          document.getElementById("homepage-view")?.classList.remove("hidden");
         }
       }
 
-      // Enhanced Logout
-      function logout() {
-        localStorage.clear();
-        Object.assign(state, {
-          token: null,
-          username: null,
-          isAdmin: false,
-          pendingUserId: null,
-        });
-        showView("homepage");
-        document.getElementById("chatbot-container").classList.add("hidden");
-        showNotification("Logged out successfully", "info");
-      }
-
-      // Modal Management
-      function showModal(modalId) {
-        document.getElementById(modalId)?.classList.remove("hidden");
-      }
-
-      function closeModals() {
-        modals.forEach((m) => m.classList.add("hidden"));
-      }
-
-      // Enhanced Navigation Setup
-      function setupNavigation(containerId, mainContentId, isAdminNav) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        container.addEventListener("click", (e) => {
-          const item = e.target.closest(
-            isAdminNav ? ".admin-sidebar-modern" : ".sidebar-modern"
-          );
-          if (item) {
-            e.preventDefault();
-            container
-              .querySelectorAll("a")
-              .forEach((i) => i.classList.remove("active"));
-            item.classList.add("active");
-            loadViewContent(item.dataset.view, mainContentId);
-          }
-        });
-      }
-
-      // Enhanced Content Loading
+      /**
+       * Loads content from an HTML <template> tag into a specified container.
+       */
       function loadViewContent(viewId, mainContentId) {
-        const template = document.getElementById(
-          `${viewId.replace("-content", "")}-template`
-        );
+        const templateId = `${viewId}-template`;
+        const template = document.getElementById(templateId);
         const container = document.getElementById(mainContentId);
 
         if (template && container) {
-          container.style.opacity = "0";
-          container.style.transform = "translateY(20px)";
+          container.innerHTML = template.innerHTML;
 
-          setTimeout(() => {
-            container.innerHTML = template.innerHTML;
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-            container.style.transition = "all 0.3s ease-out";
-
-            const viewActions = {
-              "user-dashboard-content": initUserDashboardContent,
-              "user-transactions-content": initTransactionsContent,
-              "user-billpay-content": initBillPayContent,
-              "user-profile-content": initProfileContent,
-              "user-settings-content": initSettingsContent,
-              "admin-dashboard-content": initAdminDashboardContent,
-              "admin-users-content": initAdminUsersContent,
-              "admin-transactions-content": initAdminTransactionsContent,
-              "admin-reports-content": initAdminReportsContent,
-              "admin-security-content": initAdminSecurityContent,
-            };
-
-            if (viewActions[viewId]) {
-              viewActions[viewId]();
-            }
-          }, 150);
+          const event = new CustomEvent("contentLoaded", {
+            detail: { viewId, container },
+          });
+          document.dispatchEvent(event);
+        } else {
+          console.error(
+            `Template or container not found for view: ${templateId}`
+          );
+          container.innerHTML = `<p class="text-red-500">Error: Could not load content for this view.</p>`;
         }
       }
 
-      // --- LOGIN AND AUTHENTICATION ---
+      /**
+       * A centralized function for making API requests.
+       * It automatically includes the auth token and handles basic error scenarios.
+       * @param {string} endpoint The API endpoint to call (e.g., '/login').
+       * @param {string} method The HTTP method (e.g., 'GET', 'POST').
+       * @param {object|null} body The request body for POST/PUT requests.
+       * @returns {Promise<{ok: boolean, data: any}>} An object with the request status and data.
+       */
+      async function apiRequest(endpoint, method = "GET", body = null) {
+        const headers = {};
+        const token = localStorage.getItem("token");
+        if (token) {
+          headers["x-access-token"] = token;
+        }
+        if (body && !(body instanceof FormData)) {
+          headers["Content-Type"] = "application/json";
+        }
 
-      async function handleUserLogin(form) {
+        try {
+          const response = await fetch(`/api${endpoint}`, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : null,
+          });
+
+          const contentType = response.headers.get("Content-Type");
+
+          if (response.status === 401) {
+            logout(); // Token expired or invalid
+            return {
+              ok: false,
+              data: { message: "Session expired. Please log in again." },
+            };
+          }
+
+          if (!response.ok) {
+            const errorData = contentType?.includes("application/json")
+              ? await response.json()
+              : {
+                  message: `Server error: ${response.status} ${response.statusText}`,
+                };
+            return { ok: false, data: errorData };
+          }
+
+          if (contentType && contentType.includes("application/pdf")) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const filename =
+              response.headers
+                .get("Content-Disposition")
+                ?.split("filename=")[1] ||
+              `transactions_report_${
+                new Date().toISOString().split("T")[0]
+              }.pdf`;
+            a.download = filename.replace(/"/g, "");
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            return {
+              ok: true,
+              data: { message: "Report downloaded successfully." },
+            };
+          }
+
+          const data = await response.json();
+          return { ok: response.ok, data };
+        } catch (error) {
+          console.error("API Request Error:", { endpoint, error });
+          return { ok: false, data: { message: "Network or server error." } };
+        }
+      }
+
+      let pendingUserId = null; // Stores user ID during 2FA process
+
+      async function handleUserLogin(e) {
+        e.preventDefault();
+        const username = e.target.elements["user-username"].value;
+        const password = e.target.elements["user-password"].value;
+
         const res = await apiRequest("/login", "POST", {
-          username: form.elements["user-username"].value,
-          password: form.elements["user-password"].value,
+          username,
+          password,
         });
-
-        const messageEl = document.getElementById("user-login-message");
         if (res.ok) {
-          state.pendingUserId = res.data.user_id;
+          pendingUserId = res.data.user_id;
+          closeModals();
           showModal("tfa-modal");
         } else {
-          messageEl.textContent = res.data.message;
-          messageEl.className = "mt-6 text-center text-sm text-red-600";
+          showNotification(res.data.message, "error");
         }
       }
 
-      async function handleAdminLogin(form) {
-        const res = await apiRequest("/admin/login", "POST", {
-          username: form.elements["admin-username"].value,
-          password: form.elements["admin-password"].value,
-        });
+      async function handleAdminLogin(e) {
+        e.preventDefault();
+        const username = e.target.elements["admin-username"].value;
+        const password = e.target.elements["admin-password"].value;
 
+        const res = await apiRequest("/admin/login", "POST", {
+          username,
+          password,
+        });
         if (res.ok) {
-          state.token = res.data.token;
-          state.username = res.data.username;
-          state.isAdmin = true;
-          localStorage.setItem("token", state.token);
-          localStorage.setItem("username", state.username);
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("username", res.data.username);
           localStorage.setItem("isAdmin", "true");
           closeModals();
-          showNotification(`Welcome, ${state.username}!`, "success");
+          showNotification(`Welcome, ${res.data.username}!`, "success");
           initAdminDashboard();
         } else {
-          const messageEl = document.getElementById("admin-login-message");
-          messageEl.textContent = res.data.message;
-          messageEl.className = "mt-6 text-center text-sm text-red-600";
-        }
-      }
-
-      async function verify2FA() {
-        const code = document.getElementById("tfa-code").value;
-        if (!code || !state.pendingUserId) {
-          showNotification(
-            "Invalid request. Please try logging in again.",
-            "error"
-          );
-          return;
-        }
-
-        const res = await apiRequest("/login/verify", "POST", {
-          user_id: state.pendingUserId,
-          code: code,
-        });
-
-        if (res.ok) {
-          state.token = res.data.token;
-          state.username = res.data.username;
-          state.isAdmin = false;
-          state.pendingUserId = null; // Clear pending state
-          localStorage.setItem("token", state.token);
-          localStorage.setItem("username", state.username);
-          localStorage.setItem("isAdmin", "false");
-          closeModals();
-          showNotification(`Welcome back, ${state.username}!`, "success");
-          initUserDashboard();
-        } else {
-          showNotification(res.data.message || "Verification failed.", "error");
+          showNotification(res.data.message, "error");
         }
       }
 
       async function handleRegistration(e) {
         e.preventDefault();
-        const formData = {
-          username: e.target.elements["register-username"].value,
-          email: e.target.elements["register-email"].value,
-          password: e.target.elements["register-password"].value,
-        };
+        const username = e.target.elements["register-username"].value;
+        const email = e.target.elements["register-email"].value;
+        const password = e.target.elements["register-password"].value;
 
-        const res = await apiRequest("/register", "POST", formData);
-        const messageEl = document.getElementById("register-message");
-
-        if (messageEl) {
-          messageEl.textContent = res.data.message;
-          messageEl.className = `mt-6 text-center text-sm ${
-            res.ok ? "text-green-600" : "text-red-600"
-          }`;
-        }
-
+        const res = await apiRequest("/register", "POST", {
+          username,
+          email,
+          password,
+        });
         if (res.ok) {
+          // CHANGED: The user is now notified that their account is pending approval
           showNotification(
-            "Account created successfully! Please login.",
-            "success"
+            "Registration successful! Your account is pending admin approval.",
+            "info"
           );
-          setTimeout(() => {
-            closeModals();
-            showModal("user-login-modal");
-          }, 2000);
+          closeModals();
         } else {
           showNotification(res.data.message, "error");
         }
       }
 
-      // --- DASHBOARD AND CONTENT INITIALIZATION ---
+      async function verify2FA() {
+        const code = document.getElementById("tfa-code").value;
+        if (!code || !pendingUserId) {
+          showNotification("Verification code is required.", "error");
+          return;
+        }
+
+        const res = await apiRequest("/login/verify", "POST", {
+          user_id: pendingUserId,
+          code,
+        });
+
+        if (res.ok) {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("username", res.data.username);
+          localStorage.setItem("isAdmin", "false");
+          pendingUserId = null; // Clear after use
+          closeModals();
+          showNotification(`Welcome back, ${res.data.username}!`, "success");
+          initUserDashboard();
+        } else {
+          showNotification(res.data.message, "error");
+        }
+      }
+
+      function logout() {
+        localStorage.clear();
+        // Use window.location to ensure a full page reload and state reset
+        window.location.href = "/";
+      }
 
       function initUserDashboard() {
-        showView("userDashboard");
-        document.getElementById("chatbot-container").classList.remove("hidden");
-        document.getElementById("sidebar-username").textContent =
-          state.username;
-        loadViewContent("user-dashboard-content", "user-main-content");
+        showView("user-dashboard-view");
+        document.getElementById("chatbot-window").classList.remove("hidden");
+        const username = localStorage.getItem("username") || "User";
+        const sidebarUsername = document.getElementById("sidebar-username");
+        if (sidebarUsername) sidebarUsername.textContent = username;
+
+        setupNavigation("user-sidebar-nav", "user-main-content", false);
+        loadViewContent("dashboard-content", "user-main-content");
       }
 
       function initAdminDashboard() {
-        showView("adminDashboard");
+        showView("admin-dashboard-view");
+        document.getElementById("chatbot-window").classList.add("hidden");
+        const username = localStorage.getItem("username") || "Admin";
+        const sidebarUsername = document.getElementById(
+          "admin-sidebar-username"
+        );
+        if (sidebarUsername) sidebarUsername.textContent = username;
+
+        setupNavigation("admin-sidebar-nav", "admin-main-content", true);
         loadViewContent("admin-dashboard-content", "admin-main-content");
       }
 
-      async function initUserDashboardContent() {
-        document.getElementById("dashboard-username").textContent =
-          state.username;
-        await fetchDashboardData();
-        setupTransactionForm();
-      }
-
-      async function fetchDashboardData() {
-        const accountRes = await apiRequest("/account");
-        if (accountRes.ok && accountRes.data.account) {
-          state.account = accountRes.data.account;
-          document.getElementById("account-number").textContent =
-            state.account.account_number;
-          document.getElementById(
-            "account-balance"
-          ).textContent = `$${parseFloat(state.account.balance).toFixed(2)}`;
-        }
-
-        const insightsRes = await apiRequest("/insights");
-        if (insightsRes.ok) {
-          renderSpendingChart(insightsRes.data);
-        }
-
-        const transactionsRes = await apiRequest("/transactions");
-        if (transactionsRes.ok) {
-          renderRecentTransactions(
-            transactionsRes.data.transactions.slice(0, 5)
-          );
-          updateTransactionStats(transactionsRes.data.transactions);
-        }
-      }
-
-      function renderRecentTransactions(transactions) {
-        const container = document.getElementById("recent-transactions");
+      function setupNavigation(containerId, mainContentId, isAdminNav) {
+        const container = document.getElementById(containerId);
         if (!container) return;
 
-        if (transactions.length === 0) {
-          container.innerHTML =
-            '<p class="text-gray-500 text-center py-8">No recent transactions</p>';
-          return;
-        }
-
-        container.innerHTML = transactions
-          .map((tx) => {
-            const isDebit = tx.from_account === state.account?.account_number;
-            return `
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 ${
-                              isDebit ? "bg-red-100" : "bg-green-100"
-                            } rounded-full flex items-center justify-center mr-4">
-                                <i class="fas fa-${
-                                  isDebit ? "arrow-up" : "arrow-down"
-                                } ${
-              isDebit ? "text-red-600" : "text-green-600"
-            }"></i>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-gray-800">${
-                                  tx.description
-                                }</p>
-                                <p class="text-sm text-gray-500">${
-                                  isDebit
-                                    ? "To: " + tx.to_account
-                                    : "From: " + tx.from_account
-                                }</p>
-                            </div>
-                        </div>
-                        <span class="font-bold ${
-                          isDebit ? "text-red-600" : "text-green-600"
-                        }">
-                            ${isDebit ? "-" : "+"}$${tx.amount.toFixed(2)}
-                        </span>
-                    </div>
-                `;
-          })
-          .join("");
-      }
-
-      function updateTransactionStats(transactions) {
-        const countEl = document.getElementById("transaction-count");
-        const avgEl = document.getElementById("avg-transaction");
-
-        if (countEl) countEl.textContent = transactions.length;
-        if (avgEl && transactions.length > 0) {
-          const avg =
-            transactions.reduce((sum, tx) => sum + tx.amount, 0) /
-            transactions.length;
-          avgEl.textContent = `$${avg.toFixed(2)}`;
-        }
-      }
-
-      function setupTransactionForm() {
-        const form = document.getElementById("transaction-form");
-        if (form) {
-          form.addEventListener("submit", handleTransfer);
-        }
-      }
-
-      async function handleTransfer(e) {
-        e.preventDefault();
-        const formData = {
-          to_account_number: e.target.elements["to-account"].value,
-          amount: e.target.elements["amount"].value,
-          description: e.target.elements["description"]?.value || "Transfer",
-        };
-
-        const res = await apiRequest("/transactions", "POST", formData);
-        const messageEl = document.getElementById("transaction-message");
-
-        if (messageEl) {
-          messageEl.textContent = res.data.message;
-          messageEl.className = `text-sm mt-4 ${
-            res.ok ? "text-green-600" : "text-red-600"
-          }`;
-        }
-
-        if (res.ok) {
-          e.target.reset();
-          showNotification("Transfer completed successfully!", "success");
-          await fetchDashboardData(); // Refresh data
-        } else {
-          showNotification(res.data.message, "error");
-        }
-      }
-
-      function renderSpendingChart({ labels, data }) {
-        const canvas = document.getElementById("spending-chart");
-        const fallback = document.getElementById("spending-chart-fallback");
-
-        if (!canvas || !fallback) return;
-
-        if (state.spendingChart) {
-          state.spendingChart.destroy();
-        }
-
-        if (!labels || labels.length === 0) {
-          fallback.classList.remove("hidden");
-          canvas.classList.add("hidden");
-          return;
-        }
-
-        fallback.classList.add("hidden");
-        canvas.classList.remove("hidden");
-
-        state.spendingChart = new Chart(canvas.getContext("2d"), {
-          type: "doughnut",
-          data: {
-            labels,
-            datasets: [
-              {
-                data,
-                backgroundColor: [
-                  "#4f46e5",
-                  "#10b981",
-                  "#ef4444",
-                  "#f59e0b",
-                  "#8b5cf6",
-                  "#3b82f6",
-                  "#ec4899",
-                ],
-                borderColor: "#ffffff",
-                borderWidth: 4,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: "bottom",
-                labels: {
-                  usePointStyle: true,
-                  pointStyle: "rectRounded",
-                },
-              },
-            },
-            cutout: "70%",
-          },
+        container.addEventListener("click", (e) => {
+          const link = e.target.closest("a");
+          if (link && link.dataset.view) {
+            e.preventDefault();
+            container
+              .querySelectorAll("a")
+              .forEach((i) => i.classList.remove("active"));
+            link.classList.add("active");
+            loadViewContent(link.dataset.view, mainContentId);
+          }
         });
       }
 
-      // (Other content init functions like initTransactionsContent, initBillPayContent, etc. would go here)
-      // These are omitted for brevity but would follow the same pattern of fetching data and rendering it.
+      // Gemini Chatbot logic starts here
+      const API_KEY = "AIzaSyA2eVYch6UY0vmSfEYojB5V7E21bRB3HxM";
 
-      // --- CHATBOT ---
-
+      // Constants and DOM elements
       const chatbotToggle = document.getElementById("chatbot-toggle");
       const chatbotWindow = document.getElementById("chatbot-window");
-      chatbotToggle.addEventListener("click", () =>
-        chatbotWindow.classList.toggle("hidden")
-      );
-      document
-        .getElementById("chatbot-close")
-        .addEventListener("click", () => chatbotWindow.classList.add("hidden"));
-      const chatInput = document.getElementById("chat-input");
-      const sendMessageBtn = document.getElementById("send-message");
-      const chatMessages = document.getElementById("chat-messages");
-      const sendMessage = async () => {
-        const message = chatInput.value.trim();
-        if (!message) return;
-        addChatMessage(message, "user");
-        chatInput.value = "";
-        const res = await apiRequest("/chatbot", "POST", { message });
-        if (res.ok) {
-          addChatMessage(res.data.reply, "bot");
-        } else {
-          addChatMessage(
-            "Sorry, I'm having trouble connecting right now.",
-            "bot"
-          );
-        }
-      };
-      sendMessageBtn.addEventListener("click", sendMessage);
-      chatInput.addEventListener(
-        "keypress",
-        (e) => e.key === "Enter" && sendMessage()
-      );
+      const chatbotClose = document.getElementById("chatbot-close");
+      const chatForm = document.getElementById("chat-form");
+      const userInput = document.getElementById("user-input");
+      const chatContainer = document.getElementById("chat-container");
+      const typingIndicator = document.getElementById("typing-indicator");
+      const sendBtn = document.getElementById("send-btn");
+      const model = "gemini-2.5-flash-preview-05-20";
 
-      function addChatMessage(text, sender) {
-        const div = document.createElement("div");
-        const isUser = sender === "user";
+      // Stores the conversation history for multi-turn chat
+      let chatHistory = [];
 
-        div.className = `flex mb-4 ${isUser ? "justify-end" : "justify-start"}`;
-
-        const bubbleContent = `
-                <div class="max-w-xs">
-                    <div class="px-4 py-3 rounded-2xl ${
-                      isUser
-                        ? "bg-indigo-500 text-white rounded-br-none"
-                        : "bg-gray-200 text-gray-800 rounded-bl-none"
-                    }">
-                        ${text.replace(/\n/g, "<br>")}
-                    </div>
-                </div>
-            `;
-
-        div.innerHTML = bubbleContent;
-        chatMessages.appendChild(div);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+      // --- Event Listeners and Modal Logic ---
+      function initChatbot() {
+        chatbotToggle.addEventListener("click", () =>
+          chatbotWindow.classList.toggle("hidden")
+        );
+        chatbotClose.addEventListener("click", () =>
+          chatbotWindow.classList.add("hidden")
+        );
+        chatForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const message = userInput.value.trim();
+          if (message) {
+            addMessageToChat(message, "user");
+            userInput.value = "";
+            showTypingIndicator();
+            try {
+              await getGeminiResponse(message);
+            } catch (error) {
+              console.error("API Error:", error);
+              hideTypingIndicator();
+              showModal(
+                "There was an error communicating with the API. Please check your key and try again."
+              );
+            }
+          }
+        });
       }
 
-      // --- INITIALIZATION ---
+      // --- UI Functions ---
+      function addMessageToChat(message, sender) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("flex", "items-start", "space-x-3");
+
+        const avatarDiv = document.createElement("div");
+        avatarDiv.classList.add(
+          "flex-shrink-0",
+          "w-8",
+          "h-8",
+          "rounded-full",
+          "flex",
+          "items-center",
+          "justify-center"
+        );
+
+        const messageContentDiv = document.createElement("div");
+        messageContentDiv.classList.add(
+          "p-4",
+          "rounded-2xl",
+          "max-w-[85%]",
+          "break-words"
+        );
+
+        if (sender === "user") {
+          messageDiv.classList.add("self-end", "justify-end");
+          messageDiv.classList.add("pl-8");
+          avatarDiv.classList.add("hidden"); // Hide user avatar
+          messageContentDiv.classList.add(
+            "bg-blue-600",
+            "text-white",
+            "rounded-br-none"
+          );
+        } else {
+          messageDiv.classList.add("pr-8");
+          avatarDiv.classList.add("bg-blue-500", "text-white");
+          avatarDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                    <path d="M11.25 4.507A4.5 4.5 0 0 0 9 2.25H7.5a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 .75.75h.75c.954 0 1.837.568 2.25 1.442v10.316a.75.75 0 0 0-.75.75 2.25 2.25 0 0 1-4.5 0 .75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5A4.5 4.5 0 0 0 9 19.5a.75.75 0 0 0 .75.75h.75a.75.75 0 0 0 .75-.75v-2.25a.75.75 0 0 0-.75-.75h-.75A2.25 2.25 0 0 1 6 15a.75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5a4.5 4.5 0 0 0 4.5 4.5h2.25a.75.75 0 0 0 .75-.75V2.25a.75.75 0 0 0-.75-.75h-2.25a.75.75 0 0 0-.75.75V4.5A.75.75 0 0 1 9.75 5.25H11.25V4.507ZM21.75 3a.75.75 0 0 0-.75.75v16.5a.75.75 0 0 0 1.5 0V3.75a.75.75 0 0 0-.75-.75Z" />
+                                </svg>`;
+          messageContentDiv.classList.add(
+            "bg-gray-200",
+            "text-gray-800",
+            "rounded-tl-none"
+          );
+        }
+
+        const p = document.createElement("p");
+        p.textContent = message;
+        messageContentDiv.appendChild(p);
+
+        if (sender === "user") {
+          messageDiv.appendChild(messageContentDiv);
+        } else {
+          messageDiv.appendChild(avatarDiv);
+          messageDiv.appendChild(messageContentDiv);
+        }
+
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        typingIndicator.classList.remove("hidden");
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        typingIndicator.classList.add("hidden");
+      }
+
+      // --- Gemini API Call ---
+      async function getGeminiResponse(userMessage) {
+        if (!API_KEY) {
+          hideTypingIndicator();
+          showModal(
+            "API key is not configured. Please get a key from Google AI Studio and paste it into the code."
+          );
+          return;
+        }
+
+        // Append the user's message to the chat history
+        chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+        const payload = {
+          contents: chatHistory,
+        };
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+
+        try {
+          const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error.message ||
+                `HTTP error! status: ${response.status}`
+            );
+          }
+
+          const result = await response.json();
+          const text = result.candidates[0].content.parts[0].text;
+
+          // Append the model's response to the chat history
+          chatHistory.push({ role: "model", parts: [{ text: text }] });
+
+          hideTypingIndicator();
+          addMessageToChat(text, "model");
+        } catch (error) {
+          console.error("Failed to fetch from Gemini API:", error);
+          hideTypingIndicator();
+          showModal(
+            "There was an error generating a response from the AI. Please try again."
+          );
+        }
+      }
+      // End Gemini Chatbot logic
+
+      const userDashboardContentTemplate = `
+            <template id="dashboard-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">My Dashboard</h2>
+                    <div id="account-summary" class="bg-indigo-600 text-white p-6 rounded-xl shadow-lg mb-8">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold">Current Balance</span>
+                            <span id="account-type" class="text-xs bg-indigo-800 px-3 py-1 rounded-full">Checking</span>
+                        </div>
+                        <div class="text-4xl font-bold mb-1">
+                            ₹<span id="account-balance">0.00</span>
+                        </div>
+                        <div class="text-sm">Account: <span id="account-number"></span></div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Recent Transactions</h3>
+                    <div id="recent-transactions-list" class="space-y-4">
+                        <p class="text-gray-500">Loading transactions...</p>
+                    </div>
+                </div>
+            </template>
+            <template id="transactions-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Transaction History</h2>
+                    <div id="user-transactions-list" class="space-y-4">
+                        <p class="text-gray-500">Loading transactions...</p>
+                    </div>
+                </div>
+            </template>
+            <template id="transfer-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Money Transfer</h2>
+                    <form id="transfer-form">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Recipient Account Number</label>
+                            <input type="text" id="transfer-to-account" required class="form-modern">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                            <input type="number" id="transfer-amount" required min="0.01" step="0.01" class="form-modern">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Description (Optional)</label>
+                            <input type="text" id="transfer-description" class="form-modern">
+                        </div>
+                        <button type="submit" class="neo-btn w-full">Transfer Money</button>
+                    </form>
+                </div>
+            </template>
+            <template id="bill-payment-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Bill Payment</h2>
+                    <form id="bill-payment-form">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Select Biller</label>
+                            <select id="biller-select" class="form-modern" required>
+                                <option value="">Loading billers...</option>
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                            <input type="number" id="bill-amount" required min="0.01" step="0.01" class="form-modern">
+                        </div>
+                        <button type="submit" class="neo-btn w-full">Pay Bill</button>
+                    </form>
+                </div>
+            </template>
+            <template id="insights-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Spending Insights</h2>
+                    <canvas id="spending-chart" class="w-full"></canvas>
+                </div>
+            </template>
+            <template id="profile-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">My Profile</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Profile details will be displayed here.</p>
+                </div>
+            </template>
+            <template id="deposit-withdraw-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Deposit / Withdraw</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Deposit Form -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg shadow">
+                            <h3 class="text-2xl font-bold mb-4">Deposit Funds</h3>
+                            <form id="deposit-form">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Amount (₹)</label>
+                                    <input type="number" id="deposit-amount" required min="1" step="0.01" class="form-modern">
+                                </div>
+                                <button type="submit" class="neo-btn w-full">Deposit</button>
+                            </form>
+                        </div>
+                        <!-- Withdraw Form -->
+                        <div class="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg shadow">
+                            <h3 class="text-2xl font-bold mb-4">Withdraw Funds</h3>
+                            <form id="withdraw-form">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 dark:text-gray-300 mb-2">Amount (₹)</label>
+                                    <input type="number" id="withdraw-amount" required min="1" step="0.01" class="form-modern">
+                                </div>
+                                <button type="submit" class="neo-btn w-full bg-red-600 hover:bg-red-700">Withdraw</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        `;
+
+      const adminDashboardContentTemplate = `
+            <template id="admin-dashboard-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Admin Dashboard</h2>
+                    <div id="admin-stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="glass-card text-center p-4">
+                            <h3 class="text-xl font-semibold">Total Users</h3>
+                            <p id="total-users" class="text-3xl font-bold text-indigo-600">0</p>
+                        </div>
+                        <div class="glass-card text-center p-4">
+                            <h3 class="text-xl font-semibold">Total Accounts</h3>
+                            <p id="total-accounts" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="glass-card text-center p-4">
+                            <h3 class="text-xl font-semibold">Today's Transactions</h3>
+                            <p id="transactions-today" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <div class="glass-card text-center p-4">
+                            <h3 class="text-xl font-semibold">Security Alerts</h3>
+                            <p id="security-alerts" class="text-3xl font-bold text-red-600">0</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <template id="manage-users-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Manage Users</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- User data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+            <template id="manage-billers-content-template">
+                <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Manage Billers</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biller Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billers-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Biller data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+            <template id="manage-transactions-content-template">
+                <div class="p-6 bg-gray-900 text-white rounded-xl shadow-xl">
+                    <h2 class="text-3xl font-bold mb-6">All Transactions</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-700">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Transaction ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">From Account</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">To Account</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-transactions-table-body" class="bg-gray-800 divide-y divide-gray-700">
+                                <!-- Transaction data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        `;
+
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        userDashboardContentTemplate
+      );
+      document.body.insertAdjacentHTML(
+        "beforeend",
+        adminDashboardContentTemplate
+      );
+
       document.addEventListener("DOMContentLoaded", () => {
-        if (state.token) {
-          if (state.isAdmin) {
+        const token = localStorage.getItem("token");
+        const isAdmin = localStorage.getItem("isAdmin") === "true";
+
+        if (token) {
+          if (isAdmin) {
             initAdminDashboard();
           } else {
             initUserDashboard();
           }
         } else {
-          showView("homepage");
+          showView("homepage-view");
         }
 
-        // Setup form listeners
         document
           .getElementById("user-login-form")
-          .addEventListener("submit", (e) => {
-            e.preventDefault();
-            handleUserLogin(e.currentTarget);
-          });
+          ?.addEventListener("submit", handleUserLogin);
         document
           .getElementById("admin-login-form")
-          .addEventListener("submit", (e) => {
-            e.preventDefault();
-            handleAdminLogin(e.currentTarget);
-          });
+          ?.addEventListener("submit", handleAdminLogin);
         document
           .getElementById("register-form")
-          .addEventListener("submit", handleRegistration);
+          ?.addEventListener("submit", handleRegistration);
 
-        setupNavigation("user-sidebar-nav", "user-main-content", false);
-        setupNavigation("admin-sidebar-nav", "admin-main-content", true);
+        document.querySelectorAll("[data-modal]").forEach((button) => {
+          button.addEventListener("click", () => {
+            showModal(button.dataset.modal);
+          });
+        });
 
-        if (state.darkMode) {
-          document.documentElement.classList.add("dark");
+        document.querySelectorAll(".close-modal").forEach((button) => {
+          button.addEventListener("click", closeModals);
+        });
+
+        document
+          .getElementById("verify-2fa-btn")
+          ?.addEventListener("click", verify2FA);
+
+        document.querySelectorAll(".logout-btn").forEach((button) => {
+          button.addEventListener("click", logout);
+        });
+
+        initChatbot();
+      });
+
+      document.addEventListener("contentLoaded", async (e) => {
+        if (e.detail.viewId === "manage-users-content") {
+          await loadManageUsers();
+        } else if (e.detail.viewId === "dashboard-content") {
+          await loadUserDashboard();
+        } else if (e.detail.viewId === "deposit-withdraw-content") {
+          setupDepositWithdrawForms();
+        } else if (e.detail.viewId === "admin-dashboard-content") {
+          await loadAdminDashboardStats();
+        } else if (e.detail.viewId === "manage-transactions-content") {
+          await loadAllTransactions();
+        } else if (e.detail.viewId === "manage-billers-content") {
+          await loadManageBillers();
         }
       });
 
-      // Stubs for other functions to avoid errors - these would be fully implemented
-      function initTransactionsContent() {
-        /* Fetch and render all transactions */
+      async function loadUserDashboard() {
+        const accountRes = await apiRequest("/account", "GET");
+        if (accountRes.ok) {
+          document.getElementById("account-balance").textContent = parseFloat(
+            accountRes.data.account.balance
+          ).toFixed(2);
+          document.getElementById("account-number").textContent =
+            accountRes.data.account.account_number;
+        } else {
+          showNotification(
+            "Failed to load account details. Please try again.",
+            "error"
+          );
+          document.getElementById("account-balance").textContent = "Error";
+          document.getElementById("account-number").textContent = "Error";
+        }
+
+        const transactionsRes = await apiRequest("/transactions", "GET");
+        if (transactionsRes.ok) {
+          const list = document.getElementById("recent-transactions-list");
+          list.innerHTML = "";
+          if (transactionsRes.data.transactions.length > 0) {
+            transactionsRes.data.transactions.slice(0, 5).forEach((tx) => {
+              const transactionItem = document.createElement("div");
+              transactionItem.className =
+                "flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg";
+              transactionItem.innerHTML = `
+                        <div>
+                            <div class="font-semibold text-gray-800 dark:text-white">${
+                              tx.description
+                            }</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">${new Date(
+                              tx.timestamp
+                            ).toLocaleString()}</div>
+                        </div>
+                        <div class="font-bold text-lg">${tx.amount}</div>
+                    `;
+              list.appendChild(transactionItem);
+            });
+          } else {
+            list.innerHTML =
+              '<p class="text-gray-500">No recent transactions found.</p>';
+          }
+        } else {
+          showNotification(
+            "Failed to load transactions. Please try again.",
+            "error"
+          );
+          document.getElementById("recent-transactions-list").innerHTML =
+            '<p class="text-red-500">Failed to load transactions.</p>';
+        }
       }
-      function initBillPayContent() {
-        /* Fetch billers and set up form */
+
+      function setupDepositWithdrawForms() {
+        document
+          .getElementById("deposit-form")
+          ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById("deposit-amount").value;
+            const res = await apiRequest("/deposit", "POST", {
+              amount: parseFloat(amount),
+            });
+            showNotification(res.data.message, res.ok ? "success" : "error");
+            if (res.ok) {
+              document.getElementById("deposit-form").reset();
+              loadViewContent("dashboard-content", "user-main-content");
+            }
+          });
+
+        document
+          .getElementById("withdraw-form")
+          ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById("withdraw-amount").value;
+            const res = await apiRequest("/withdraw", "POST", {
+              amount: parseFloat(amount),
+            });
+            showNotification(res.data.message, res.ok ? "success" : "error");
+            if (res.ok) {
+              document.getElementById("withdraw-form").reset();
+              loadViewContent("dashboard-content", "user-main-content");
+            }
+          });
       }
-      function initProfileContent() {
-        /* Fetch user profile */
+
+      async function loadManageUsers() {
+        const usersTableBody = document.getElementById("users-table-body");
+        usersTableBody.innerHTML =
+          '<tr><td colspan="4" class="text-center py-4">Loading users...</td></tr>';
+
+        const res = await apiRequest("/admin/users", "GET");
+
+        if (res.ok) {
+          usersTableBody.innerHTML = "";
+          res.data.users.forEach((user) => {
+            const row = document.createElement("tr");
+            row.className = "hover:bg-gray-50 dark:hover:bg-gray-700";
+
+            // CHANGED: Added logic for 'pending' status
+            let statusColor = "";
+            let actionBtnText = "";
+            let actionBtnColor = "";
+            let newStatus = "";
+
+            if (user.status === "active") {
+              statusColor = "text-green-500";
+              actionBtnText = "Suspend";
+              actionBtnColor = "bg-orange-500";
+              newStatus = "suspended";
+            } else if (user.status === "suspended") {
+              statusColor = "text-red-500";
+              actionBtnText = "Activate";
+              actionBtnColor = "bg-green-500";
+              newStatus = "active";
+            } else if (user.status === "pending") {
+              statusColor = "text-yellow-500";
+              actionBtnText = "Approve";
+              actionBtnColor = "bg-indigo-600";
+              newStatus = "active"; // Approve changes status to active
+            }
+
+            row.innerHTML = `
+                      <td class="px-6 py-4 whitespace-nowrap">${user.username}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                          <span class="font-semibold ${statusColor}">${user.status}</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button data-user-id="${user._id}" data-action="toggle-status" data-current-status="${user.status}" data-new-status="${newStatus}" class="text-white ${actionBtnColor} px-3 py-1 rounded-full text-xs hover:opacity-80 transition-opacity mr-2">
+                              ${actionBtnText}
+                          </button>
+                          <button data-user-id="${user._id}" data-action="delete" class="text-white bg-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-700 transition-colors">
+                              Delete
+                          </button>
+                      </td>
+                  `;
+            usersTableBody.appendChild(row);
+          });
+
+          usersTableBody.addEventListener("click", async (e) => {
+            const button = e.target.closest("button");
+            if (!button) return;
+
+            const userId = button.dataset.userId;
+            const action = button.dataset.action;
+
+            if (action === "toggle-status") {
+              const newStatus = button.dataset.newStatus;
+              const res = await apiRequest(`/admin/users/${userId}`, "PUT", {
+                status: newStatus,
+              });
+              if (res.ok) {
+                showNotification(res.data.message, "success");
+                await loadManageUsers();
+              } else {
+                showNotification(res.data.message, "error");
+              }
+            } else if (action === "delete") {
+              showModal("confirm-delete-modal");
+              document.getElementById("confirm-delete-btn").onclick =
+                async () => {
+                  closeModals();
+                  const res = await apiRequest(
+                    `/admin/users/${userId}`,
+                    "DELETE"
+                  );
+                  if (res.ok) {
+                    showNotification(res.data.message, "success");
+                    await loadManageUsers();
+                  } else {
+                    showNotification(res.data.message, "error");
+                  }
+                };
+            }
+          });
+        } else {
+          usersTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-red-500 py-4">${res.data.message}</td></tr>`;
+        }
       }
-      function initSettingsContent() {
-        /* Set up settings toggles */
+
+      async function loadManageBillers() {
+        const billersTableBody = document.getElementById("billers-table-body");
+        billersTableBody.innerHTML =
+          '<tr><td colspan="2" class="text-center py-4">Loading billers...</td></tr>';
+
+        const res = await apiRequest("/billers", "GET");
+        if (res.ok) {
+          billersTableBody.innerHTML = "";
+          if (res.data.billers.length > 0) {
+            res.data.billers.forEach((biller) => {
+              const row = document.createElement("tr");
+              row.className = "hover:bg-gray-50 dark:hover:bg-gray-700";
+              row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${biller.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${biller.category}</td>
+                    `;
+              billersTableBody.appendChild(row);
+            });
+          } else {
+            billersTableBody.innerHTML = `<tr><td colspan="2" class="text-center text-gray-500 py-4">No billers found.</td></tr>`;
+          }
+        } else {
+          billersTableBody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500 py-4">${res.data.message}</td></tr>`;
+        }
       }
-      function initAdminDashboardContent() {
-        /* Fetch admin stats */
+
+      async function loadAdminDashboardStats() {
+        // No stats to load anymore since reports have been removed.
+        const totalUsers = "N/A";
+        const totalAccounts = "N/A";
+        const transactionsToday = "N/A";
+        const securityAlerts = "N/A";
+
+        document.getElementById("total-users").textContent = totalUsers;
+        document.getElementById("total-accounts").textContent = totalAccounts;
+        document.getElementById("transactions-today").textContent =
+          transactionsToday;
+        document.getElementById("security-alerts").textContent = securityAlerts;
       }
-      function initAdminUsersContent() {
-        /* Fetch all users */
+
+      async function loadAllTransactions() {
+        const transactionsTableBody = document.getElementById(
+          "all-transactions-table-body"
+        );
+        transactionsTableBody.innerHTML =
+          '<tr><td colspan="7" class="text-center py-4 text-gray-400">Loading transactions...</td></tr>';
+
+        const res = await apiRequest("/admin/transactions", "GET");
+
+        if (res.ok) {
+          transactionsTableBody.innerHTML = "";
+          if (res.data.transactions.length > 0) {
+            res.data.transactions.forEach((tx) => {
+              const row = document.createElement("tr");
+              row.className = "hover:bg-gray-700";
+
+              row.innerHTML = `
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${
+                    tx._id
+                  }</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
+                    tx.from_account
+                  }</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
+                    tx.to_account
+                  }</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${tx.amount.toFixed(
+                    2
+                  )}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
+                    tx.type
+                  }</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
+                    tx.description
+                  }</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${new Date(
+                    tx.timestamp
+                  ).toLocaleString()}</td>
+              `;
+              transactionsTableBody.appendChild(row);
+            });
+          } else {
+            transactionsTableBody.innerHTML =
+              '<tr><td colspan="7" class="text-center py-4 text-gray-400">No transactions found.</td></tr>';
+          }
+        } else {
+          transactionsTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-red-500 py-4">Network or server error.</td></tr>`;
+        }
       }
-      function initAdminTransactionsContent() {
-        /* Fetch all transactions */
-      }
-      function initAdminReportsContent() {
-        /* Set up report downloads */
-      }
-      function initAdminSecurityContent() {
-        /* Fetch security logs */
+
+      async function downloadPdfReport() {
+        // Since reports have been removed, this function is now an empty stub.
+        showNotification("Reports functionality has been removed.", "info");
       }
     </script>
   </body>

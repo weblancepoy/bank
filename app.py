@@ -16,7 +16,7 @@ from services import (
     auth_service, biller_service, chatbot_service, report_service
 )
 from services.seed_data import seed_initial_data # Import the new seeding function
-from services.reports_blueprint import reports_bp
+from services.reports_blueprint import reports_bp # Import reports blueprint
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -31,7 +31,7 @@ if not app.config['GEMINI_API_KEY']:
 # Register blueprints
 app.register_blueprint(reports_bp, url_prefix='/api/admin/reports')
 
-# --- Decorators for authentication ---
+# --- Decorators for authentication (Included for completeness, logic assumed correct) ---
 def token_required(f):
     """Decorator to require a valid JWT token."""
     @wraps(f)
@@ -40,7 +40,8 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            # We use the key defined in app.config
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"]) 
             g.current_user_id = data['user_id']
             g.is_admin = data.get('is_admin', False)
         except jwt.ExpiredSignatureError:
@@ -106,6 +107,13 @@ def admin_login():
 def get_user_account():
     """Get the logged-in user's account details."""
     response, status_code = account_service.get_account_by_user_id(g.current_user_id)
+    return jsonify(response), status_code
+
+@app.route('/api/profile', methods=['GET'])
+@token_required
+def get_profile():
+    """Endpoint to get the logged-in user's profile details."""
+    response, status_code = user_service.get_user_profile(g.current_user_id)
     return jsonify(response), status_code
 
 @app.route('/api/transactions', methods=['GET'])
@@ -217,6 +225,45 @@ def delete_user(user_id):
     response, status_code = user_service.delete_user(user_id)
     return jsonify(response), status_code
 
+# --- NEW ADMIN BILLER ROUTES ---
+@app.route('/api/admin/billers', methods=['GET'])
+@admin_required
+def get_admin_billers():
+    """Admin endpoint to get all billers."""
+    response, status_code = biller_service.get_all_billers()
+    return jsonify(response), status_code
+
+@app.route('/api/admin/billers', methods=['POST'])
+@admin_required
+def create_biller_admin():
+    """Admin endpoint to create a new biller."""
+    data = request.get_json()
+    response, status_code = biller_service.create_biller(
+        name=data.get('name'), 
+        category=data.get('category')
+    )
+    return jsonify(response), status_code
+
+@app.route('/api/admin/billers/<biller_id>', methods=['PUT'])
+@admin_required
+def update_biller_admin(biller_id):
+    """Admin endpoint to update an existing biller."""
+    data = request.get_json()
+    response, status_code = biller_service.update_biller(
+        biller_id=biller_id,
+        name=data.get('name'),
+        category=data.get('category')
+    )
+    return jsonify(response), status_code
+
+@app.route('/api/admin/billers/<biller_id>', methods=['DELETE'])
+@admin_required
+def delete_biller_admin(biller_id):
+    """Admin endpoint to delete a biller."""
+    response, status_code = biller_service.delete_biller(biller_id)
+    return jsonify(response), status_code
+# --- END NEW ADMIN BILLER ROUTES ---
+
 @app.route('/api/admin/transactions', methods=['GET'])
 @admin_required
 def get_all_transactions_admin():
@@ -225,6 +272,21 @@ def get_all_transactions_admin():
     end_date = request.args.get('end_date')
     response, status_code = transaction_service.get_all_transactions(start_date=start_date, end_date=end_date)
     return jsonify(response), status_code
+
+@app.route('/api/admin/reports/transactions.csv', methods=['GET'])
+@admin_required
+def download_transactions_report_csv():
+    """
+    Handles the API request to download a CSV report of all transactions.
+    """
+    csv_data = report_service.generate_transaction_report_csv()
+    
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=transactions_report.csv"}
+    )
+
 
 # --- Application Runner ---
 if __name__ == '__main__':

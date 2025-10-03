@@ -736,15 +736,17 @@
           </button>
         </div>
       </div>
-      <!-- Confirm Delete Modal -->
+      <!-- Confirm Delete Modal (User/Biller) -->
       <div
         id="confirm-delete-modal"
         class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
       >
         <div class="glass-card w-full max-w-sm p-8 text-center">
-          <h2 class="text-2xl font-bold mb-4">Confirm Deletion</h2>
-          <p class="text-gray-600 mb-6">
-            Are you sure you want to delete this user? This action cannot be
+          <h2 id="confirm-delete-title" class="text-2xl font-bold mb-4">
+            Confirm Deletion
+          </h2>
+          <p id="confirm-delete-message" class="text-gray-600 mb-6">
+            Are you sure you want to delete this item? This action cannot be
             undone.
           </p>
           <div class="flex justify-center gap-4">
@@ -761,6 +763,55 @@
               Cancel
             </button>
           </div>
+        </div>
+      </div>
+      <!-- Create/Edit Biller Modal -->
+      <div
+        id="biller-crud-modal"
+        class="modal fixed inset-0 z-50 hidden flex items-center justify-center glass-dark animate-fade-scale"
+      >
+        <div class="glass-card w-full max-w-lg p-8">
+          <h2
+            id="biller-modal-title"
+            class="text-3xl font-bold text-center mb-6"
+          >
+            Create New Biller
+          </h2>
+          <form id="biller-crud-form">
+            <input type="hidden" id="biller-id-field" />
+            <div class="mb-4">
+              <label class="block text-gray-700 dark:text-gray-300 mb-2"
+                >Biller Name</label
+              >
+              <input
+                type="text"
+                id="biller-name"
+                placeholder="e.g., City Power & Light"
+                required
+                class="form-modern"
+              />
+            </div>
+            <div class="mb-6">
+              <label class="block text-gray-700 dark:text-gray-300 mb-2"
+                >Category</label
+              >
+              <input
+                type="text"
+                id="biller-category"
+                placeholder="e.g., Utilities, Internet, Credit Card"
+                required
+                class="form-modern"
+              />
+            </div>
+            <button type="submit" id="biller-submit-btn" class="neo-btn w-full">
+              Create Biller
+            </button>
+          </form>
+          <button
+            class="close-modal absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-3xl"
+          >
+            &times;
+          </button>
         </div>
       </div>
       <!-- Main Chatbot Container -->
@@ -798,30 +849,7 @@
           class="flex-grow p-6 overflow-y-auto chat-container flex flex-col space-y-4 bg-gray-50"
         >
           <!-- Initial Bot Message -->
-          <div class="flex items-start space-x-3 pr-8">
-            <div
-              class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="w-5 h-5"
-              >
-                <path
-                  d="M11.25 4.507A4.5 4.5 0 0 0 9 2.25H7.5a.75.75 0 0 0-.75.75v2.25a.75.75 0 0 0 .75.75h.75c.954 0 1.837.568 2.25 1.442v10.316a.75.75 0 0 0-.75.75 2.25 2.25 0 0 1-4.5 0 .75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5A4.5 4.5 0 0 0 9 19.5a.75.75 0 0 0 .75.75h.75a.75.75 0 0 0 .75-.75v-2.25a.75.75 0 0 0-.75-.75h-.75A2.25 2.25 0 0 1 6 15a.75.75 0 0 0-.75-.75H3a.75.75 0 0 0-.75.75v2.25c0 .414.336.75.75.75h1.5a4.5 4.5 0 0 0 4.5 4.5h2.25a.75.75 0 0 0 .75-.75V2.25a.75.75 0 0 0-.75-.75h-2.25a.75.75 0 0 0-.75.75V4.5A.75.75 0 0 1 9.75 5.25H11.25V4.507ZM21.75 3a.75.75 0 0 0-.75.75v16.5a.75.75 0 0 0 1.5 0V3.75a.75.75 0 0 0-.75-.75Z"
-                />
-              </svg>
-            </div>
-            <div
-              class="bg-gray-200 text-gray-800 p-4 rounded-2xl rounded-tl-none max-w-[85%]"
-            >
-              <p>
-                Hello! I am a simple chatbot powered by Gemini. How can I help
-                you today?
-              </p>
-            </div>
-          </div>
+          <!-- Removed initial message HTML here; it will be added dynamically by initChatbot -->
         </div>
 
         <!-- Typing Indicator -->
@@ -888,7 +916,7 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
               />
             </svg>
           </button>
@@ -937,7 +965,7 @@
                 <div class="flex items-center">
                     <i class="fas ${iconClass} mr-3"></i>
                     <span>${message}</span>
-                    <button class="ml-auto text-white/70 hover:text-white close-notification">&times;</button>
+                    <button class="ml-auto text-white/70 hover:text-white close-notification">&times;1</button>
                 </div>
             `;
 
@@ -995,11 +1023,6 @@
 
       /**
        * A centralized function for making API requests.
-       * It automatically includes the auth token and handles basic error scenarios.
-       * @param {string} endpoint The API endpoint to call (e.g., '/login').
-       * @param {string} method The HTTP method (e.g., 'GET', 'POST').
-       * @param {object|null} body The request body for POST/PUT requests.
-       * @returns {Promise<{ok: boolean, data: any}>} An object with the request status and data.
        */
       async function apiRequest(endpoint, method = "GET", body = null) {
         const headers = {};
@@ -1007,7 +1030,12 @@
         if (token) {
           headers["x-access-token"] = token;
         }
-        if (body && !(body instanceof FormData)) {
+        if (
+          body &&
+          !(body instanceof FormData) &&
+          method !== "GET" &&
+          method !== "DELETE"
+        ) {
           headers["Content-Type"] = "application/json";
         }
 
@@ -1029,6 +1057,7 @@
           }
 
           if (!response.ok) {
+            // Handle JSON error body if available
             const errorData = contentType?.includes("application/json")
               ? await response.json()
               : {
@@ -1037,6 +1066,7 @@
             return { ok: false, data: errorData };
           }
 
+          // Handle PDF Download
           if (contentType && contentType.includes("application/pdf")) {
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -1056,7 +1086,31 @@
             window.URL.revokeObjectURL(url);
             return {
               ok: true,
-              data: { message: "Report downloaded successfully." },
+              data: { message: "PDF Report downloaded successfully." },
+            };
+          }
+
+          // Handle CSV Download
+          if (contentType && contentType.includes("text/csv")) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const filename =
+              response.headers
+                .get("Content-Disposition")
+                ?.split("filename=")[1] ||
+              `transactions_report_${
+                new Date().toISOString().split("T")[0]
+              }.csv`;
+            a.download = filename.replace(/"/g, "");
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            return {
+              ok: true,
+              data: { message: "CSV Report downloaded successfully." },
             };
           }
 
@@ -1069,6 +1123,7 @@
       }
 
       let pendingUserId = null; // Stores user ID during 2FA process
+      let currentBillerId = null; // Stores ID for biller CRUD operations
 
       async function handleUserLogin(e) {
         e.preventDefault();
@@ -1121,7 +1176,7 @@
           password,
         });
         if (res.ok) {
-          // CHANGED: The user is now notified that their account is pending approval
+          // The user is now notified that their account is pending approval
           showNotification(
             "Registration successful! Your account is pending admin approval.",
             "info"
@@ -1165,6 +1220,7 @@
 
       function initUserDashboard() {
         showView("user-dashboard-view");
+        // FIX: The chatbot window should be visible in the user dashboard
         document.getElementById("chatbot-window").classList.remove("hidden");
         const username = localStorage.getItem("username") || "User";
         const sidebarUsername = document.getElementById("sidebar-username");
@@ -1176,6 +1232,7 @@
 
       function initAdminDashboard() {
         showView("admin-dashboard-view");
+        // Hide chatbot in admin panel
         document.getElementById("chatbot-window").classList.add("hidden");
         const username = localStorage.getItem("username") || "Admin";
         const sidebarUsername = document.getElementById(
@@ -1205,7 +1262,9 @@
       }
 
       // Gemini Chatbot logic starts here
-      const API_KEY = "AIzaSyA2eVYch6UY0vmSfEYojB5V7E21bRB3HxM";
+      // The API_KEY variable is no longer needed client-side for validation,
+      // as the backend handles key validation.
+      // const API_KEY = "AIzaSyBVovmQ_bPy0MtzZgmrzDF2R5DZs42Ka54";
 
       // Constants and DOM elements
       const chatbotToggle = document.getElementById("chatbot-toggle");
@@ -1215,35 +1274,45 @@
       const userInput = document.getElementById("user-input");
       const chatContainer = document.getElementById("chat-container");
       const typingIndicator = document.getElementById("typing-indicator");
-      const sendBtn = document.getElementById("send-btn");
-      const model = "gemini-2.5-flash-preview-05-20";
 
-      // Stores the conversation history for multi-turn chat
+      // Stores the conversation history for multi-turn chat (local client-side only)
       let chatHistory = [];
 
       // --- Event Listeners and Modal Logic ---
       function initChatbot() {
+        // FIX: Re-adding initial message as it was likely removed in the previous version
+        addMessageToChat(
+          "Hello! I am SmartBot, your AI banking assistant. How can I help you today?",
+          "model"
+        );
+
         chatbotToggle.addEventListener("click", () =>
           chatbotWindow.classList.toggle("hidden")
         );
         chatbotClose.addEventListener("click", () =>
           chatbotWindow.classList.add("hidden")
         );
+
+        // Ensure form submission is handled properly
         chatForm.addEventListener("submit", async (e) => {
           e.preventDefault();
           const message = userInput.value.trim();
           if (message) {
             addMessageToChat(message, "user");
             userInput.value = "";
+            userInput.disabled = true;
             showTypingIndicator();
             try {
               await getGeminiResponse(message);
             } catch (error) {
               console.error("API Error:", error);
               hideTypingIndicator();
-              showModal(
-                "There was an error communicating with the API. Please check your key and try again."
+              showNotification(
+                "There was an error communicating with the AI Chatbot. Please try again.",
+                "error"
               );
+            } finally {
+              userInput.disabled = false;
             }
           }
         });
@@ -1252,7 +1321,12 @@
       // --- UI Functions ---
       function addMessageToChat(message, sender) {
         const messageDiv = document.createElement("div");
-        messageDiv.classList.add("flex", "items-start", "space-x-3");
+        messageDiv.classList.add(
+          "flex",
+          "items-start",
+          "space-x-3",
+          "animate-slide-up"
+        );
 
         const avatarDiv = document.createElement("div");
         avatarDiv.classList.add(
@@ -1321,53 +1395,27 @@
 
       // --- Gemini API Call ---
       async function getGeminiResponse(userMessage) {
-        if (!API_KEY) {
-          hideTypingIndicator();
-          showModal(
-            "API key is not configured. Please get a key from Google AI Studio and paste it into the code."
-          );
-          return;
-        }
+        // FIX: REMOVED the client-side check for the API_KEY placeholder.
+        // The backend service (/api/chatbot) is now responsible for handling
+        // the placeholder key and returning an appropriate message.
+        // We ensure userInput is enabled and typing indicator is hidden regardless of outcome.
 
-        // Append the user's message to the chat history
-        chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+        // This is simplified to call the Flask endpoint, which in turn calls Gemini.
+        const res = await apiRequest("/chatbot", "POST", {
+          message: userMessage,
+        });
 
-        const payload = {
-          contents: chatHistory,
-        };
+        hideTypingIndicator();
+        userInput.disabled = false;
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
-
-        try {
-          const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(
-              errorData.error.message ||
-                `HTTP error! status: ${response.status}`
-            );
-          }
-
-          const result = await response.json();
-          const text = result.candidates[0].content.parts[0].text;
-
-          // Append the model's response to the chat history
-          chatHistory.push({ role: "model", parts: [{ text: text }] });
-
-          hideTypingIndicator();
-          addMessageToChat(text, "model");
-        } catch (error) {
-          console.error("Failed to fetch from Gemini API:", error);
-          hideTypingIndicator();
-          showModal(
-            "There was an error generating a response from the AI. Please try again."
+        if (res.ok) {
+          addMessageToChat(res.data.reply, "model");
+        } else {
+          // Display the error message returned by the backend service
+          addMessageToChat(
+            res.data.message ||
+              "An error occurred with the AI service. Please check your API key in .env.",
+            "model"
           );
         }
       }
@@ -1396,7 +1444,7 @@
             <template id="transactions-content-template">
                 <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Transaction History</h2>
-                    <div id="user-transactions-list" class="space-y-4">
+                    <div id="user-transactions-container" class="space-y-4">
                         <p class="text-gray-500">Loading transactions...</p>
                     </div>
                 </div>
@@ -1442,13 +1490,45 @@
             <template id="insights-content-template">
                 <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Spending Insights</h2>
-                    <canvas id="spending-chart" class="w-full"></canvas>
+                    <div class="flex justify-center items-center h-full w-full" style="min-height: 400px; max-width: 500px; margin: 0 auto;">
+                      <canvas id="spending-chart" class="w-full"></canvas>
+                    </div>
                 </div>
             </template>
             <template id="profile-content-template">
                 <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">My Profile</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Profile details will be displayed here.</p>
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                            <i class="fas fa-user-circle text-4xl text-indigo-500"></i>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-white">Username:</p>
+                                <p id="profile-username" class="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                            <i class="fas fa-envelope text-4xl text-green-500"></i>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-white">Email:</p>
+                                <p id="profile-email" class="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                            <i class="fas fa-calendar-alt text-4xl text-purple-500"></i>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-white">Member Since:</p>
+                                <p id="profile-created-at" class="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                            <i class="fas fa-chart-line text-4xl text-orange-500"></i>
+                            <div>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-white">Status:</p>
+                                <p id="profile-status" class="text-gray-600 dark:text-gray-400 font-medium">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="neo-btn mt-8">Change Password</button>
                 </div>
             </template>
             <template id="deposit-withdraw-content-template">
@@ -1504,6 +1584,17 @@
                             <p id="security-alerts" class="text-3xl font-bold text-red-600">0</p>
                         </div>
                     </div>
+                    
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mt-12 mb-4">Reports</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="downloadCsvReport()" class="bg-blue-600 text-white px-6 py-3 rounded-xl shadow hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-file-csv mr-2"></i> Download All Transactions (CSV)
+                        </button>
+                        <button onclick="downloadPdfReport()" class="bg-red-600 text-white px-6 py-3 rounded-xl shadow hover:bg-red-700 transition-colors">
+                            <i class="fas fa-file-pdf mr-2"></i> Download All Transactions (PDF)
+                        </button>
+                    </div>
+
                 </div>
             </template>
             <template id="manage-users-content-template">
@@ -1529,12 +1620,16 @@
             <template id="manage-billers-content-template">
                 <div class="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl">
                     <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6">Manage Billers</h2>
+                    <button id="add-biller-btn" class="neo-btn mb-4 py-2 px-4 text-sm">
+                        <i class="fas fa-plus mr-2"></i> Add New Biller
+                    </button>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Biller Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="billers-table-body" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -1631,29 +1726,283 @@
         } else if (e.detail.viewId === "deposit-withdraw-content") {
           setupDepositWithdrawForms();
         } else if (e.detail.viewId === "admin-dashboard-content") {
-          await loadAdminDashboardStats();
+          await loadAdminDashboardStats(); // FIX IS HERE
         } else if (e.detail.viewId === "manage-transactions-content") {
           await loadAllTransactions();
         } else if (e.detail.viewId === "manage-billers-content") {
+          // FIX 2: Load billers for admin management
           await loadManageBillers();
+          setupBillerForms();
+        } else if (e.detail.viewId === "transfer-content") {
+          setupTransferForm();
+        } else if (e.detail.viewId === "bill-payment-content") {
+          // FIX 2: Ensure billers are loaded here for the user view
+          await setupBillPaymentForm();
+        } else if (e.detail.viewId === "insights-content") {
+          await loadSpendingInsights();
+        } else if (e.detail.viewId === "transactions-content") {
+          // FIX 1: Load all user transactions for the dedicated page
+          await loadUserTransactions();
+        } else if (e.detail.viewId === "profile-content") {
+          await loadUserProfile(); // Load profile data
         }
       });
 
+      // --- New/Updated Dashboard and Form Logic ---
+
+      // FIX 1: New function to load the user's full transaction history
+      async function loadUserTransactions() {
+        const transactionsRes = await apiRequest("/transactions", "GET");
+        const container = document.getElementById(
+          "user-transactions-container"
+        );
+
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (transactionsRes.ok) {
+          if (transactionsRes.data.transactions.length > 0) {
+            transactionsRes.data.transactions.forEach((tx) => {
+              const transactionItem = document.createElement("div");
+              const isDeposit =
+                tx.type === "Deposit" || tx.to_account !== "N/A";
+              const amountColor = isDeposit ? "text-green-500" : "text-red-500";
+              const sign = isDeposit ? "+" : "-";
+
+              transactionItem.className =
+                "flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg animate-slide-up";
+
+              transactionItem.innerHTML = `
+                        <div>
+                            <div class="font-semibold text-gray-800 dark:text-white">${
+                              tx.description || tx.type
+                            }</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                ID: ${tx._id.substring(0, 8)}... | 
+                                ${new Date(tx.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                        <div class="font-bold text-lg ${amountColor}">
+                            ${sign} ₹${parseFloat(tx.amount).toFixed(2)}
+                        </div>
+                    `;
+              container.appendChild(transactionItem);
+            });
+          } else {
+            container.innerHTML =
+              '<p class="text-gray-500">No transactions found in your history.</p>';
+          }
+        } else {
+          showNotification(
+            transactionsRes.data.message ||
+              "Failed to load transaction history.",
+            "error"
+          );
+          container.innerHTML =
+            '<p class="text-red-500">Failed to load transaction history.</p>';
+        }
+      }
+
+      // FIX: Function to load and display user profile details
+      async function loadUserProfile() {
+        // FIX: Hitting the correct endpoint for profile details
+        const profileRes = await apiRequest("/profile", "GET");
+
+        if (profileRes.ok) {
+          const profile = profileRes.data.profile;
+          document.getElementById("profile-username").textContent =
+            profile.username || "N/A";
+          document.getElementById("profile-email").textContent =
+            profile.email || "N/A";
+          document.getElementById("profile-status").textContent =
+            (profile.status || "N/A").charAt(0).toUpperCase() +
+            (profile.status || "N/A").slice(1);
+
+          let createdAt = "N/A";
+          if (profile.created_at) {
+            try {
+              createdAt = new Date(profile.created_at).toLocaleDateString();
+            } catch (e) {
+              console.error("Error parsing creation date:", e);
+              createdAt = "Invalid Date";
+            }
+          }
+          document.getElementById("profile-created-at").textContent = createdAt;
+        } else {
+          showNotification(
+            profileRes.data.message || "Failed to load profile details.",
+            "error"
+          );
+          document.getElementById("profile-username").textContent = "Error";
+          document.getElementById("profile-email").textContent = "Error";
+          document.getElementById("profile-status").textContent = "Error";
+          document.getElementById("profile-created-at").textContent = "Error";
+        }
+      }
+
+      async function loadSpendingInsights() {
+        const insightsRes = await apiRequest("/insights", "GET");
+        const ctx = document.getElementById("spending-chart")?.getContext("2d");
+        if (insightsRes.ok && ctx) {
+          // Destroy previous chart instance if it exists
+          if (window.mySpendingChart) {
+            window.mySpendingChart.destroy();
+          }
+
+          window.mySpendingChart = new Chart(ctx, {
+            type: "pie",
+            data: {
+              labels: insightsRes.data.labels,
+              datasets: [
+                {
+                  label: "Spending Breakdown",
+                  data: insightsRes.data.data,
+                  backgroundColor: [
+                    "rgb(255, 99, 132)",
+                    "rgb(54, 162, 235)",
+                    "rgb(255, 205, 86)",
+                    "rgb(75, 192, 192)",
+                    "rgb(153, 102, 255)",
+                  ],
+                  hoverOffset: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false, // Allows chart to fit parent div size
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: {
+                    color: document.body.classList.contains("dark:bg-gray-900")
+                      ? "white"
+                      : "black",
+                  },
+                },
+                title: {
+                  display: true,
+                  text: "Spending Insights by Category",
+                  color: document.body.classList.contains("dark:bg-gray-900")
+                    ? "white"
+                    : "black",
+                },
+              },
+            },
+          });
+        } else if (ctx) {
+          document
+            .getElementById("insights-content-template")
+            .querySelector(".flex").innerHTML = `<p class="text-red-500">${
+            insightsRes.data.message || "Failed to load insights."
+          }</p>`;
+        }
+      }
+
+      function setupTransferForm() {
+        document
+          .getElementById("transfer-form")
+          ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const to_account_number = document.getElementById(
+              "transfer-to-account"
+            ).value;
+            const amount = document.getElementById("transfer-amount").value;
+            const description = document.getElementById(
+              "transfer-description"
+            ).value;
+
+            const res = await apiRequest("/transactions", "POST", {
+              to_account_number,
+              amount: parseFloat(amount),
+              description,
+            });
+
+            showNotification(res.data.message, res.ok ? "success" : "error");
+            if (res.ok) {
+              document.getElementById("transfer-form").reset();
+              loadViewContent("dashboard-content", "user-main-content");
+            }
+          });
+      }
+
+      // FIX: Consolidated function for loading billers and setting up payment form for users
+      async function setupBillPaymentForm() {
+        const billerSelect = document.getElementById("biller-select");
+        if (!billerSelect) return;
+
+        billerSelect.innerHTML = '<option value="">Loading billers...</option>';
+        // Note: User API endpoint is /billers
+        const billersRes = await apiRequest("/billers", "GET");
+
+        if (billersRes.ok) {
+          const billers = billersRes.data.billers;
+          billerSelect.innerHTML = '<option value="">Select a Biller</option>';
+          billers.forEach((biller) => {
+            const option = document.createElement("option");
+            option.value = biller._id;
+            option.textContent = `${biller.name} (${biller.category})`;
+            billerSelect.appendChild(option);
+          });
+          // Fix for "billers are not showing"
+          if (billers.length === 0) {
+            billerSelect.innerHTML =
+              '<option value="">No Billers available</option>';
+          }
+        } else {
+          billerSelect.innerHTML =
+            '<option value="">Error loading billers</option>';
+          showNotification(
+            billersRes.data.message || "Failed to load billers.",
+            "error"
+          );
+        }
+
+        document
+          .getElementById("bill-payment-form")
+          ?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const biller_id = billerSelect.value;
+            const amount = document.getElementById("bill-amount").value;
+
+            if (!biller_id) {
+              showNotification("Please select a biller.", "error");
+              return;
+            }
+
+            const res = await apiRequest("/bill-payment", "POST", {
+              biller_id,
+              amount: parseFloat(amount),
+            });
+
+            showNotification(res.data.message, res.ok ? "success" : "error");
+            if (res.ok) {
+              document.getElementById("bill-payment-form").reset();
+              loadViewContent("dashboard-content", "user-main-content");
+            }
+          });
+      }
+      // END FIX
+
       async function loadUserDashboard() {
         const accountRes = await apiRequest("/account", "GET");
+        let userAccountNumber = null;
+
         if (accountRes.ok) {
+          userAccountNumber = accountRes.data.account.account_number;
           document.getElementById("account-balance").textContent = parseFloat(
             accountRes.data.account.balance
           ).toFixed(2);
           document.getElementById("account-number").textContent =
-            accountRes.data.account.account_number;
+            userAccountNumber;
         } else {
           showNotification(
-            "Failed to load account details. Please try again.",
+            "Failed to load account details. Please ensure your account is active.",
             "error"
           );
           document.getElementById("account-balance").textContent = "Error";
           document.getElementById("account-number").textContent = "Error";
+          return;
         }
 
         const transactionsRes = await apiRequest("/transactions", "GET");
@@ -1663,18 +2012,32 @@
           if (transactionsRes.data.transactions.length > 0) {
             transactionsRes.data.transactions.slice(0, 5).forEach((tx) => {
               const transactionItem = document.createElement("div");
+
+              // Determine if transaction is a deposit/credit (money coming in)
+              // We check if it's a deposit type OR if the 'to' account matches the user's account and the 'from' account is not the user's account
+              const isDeposit =
+                tx.type === "Deposit" ||
+                (tx.to_account === userAccountNumber &&
+                  tx.from_account !== userAccountNumber);
+
+              const amountColor = isDeposit ? "text-green-500" : "text-red-500";
+              const sign = isDeposit ? "+" : "-";
+
               transactionItem.className =
                 "flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg";
+
               transactionItem.innerHTML = `
                         <div>
                             <div class="font-semibold text-gray-800 dark:text-white">${
-                              tx.description
+                              tx.description || tx.type
                             }</div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">${new Date(
                               tx.timestamp
                             ).toLocaleString()}</div>
                         </div>
-                        <div class="font-bold text-lg">${tx.amount}</div>
+                        <div class="font-bold text-lg ${amountColor}">${sign} ₹${parseFloat(
+                tx.amount
+              ).toFixed(2)}</div>
                     `;
               list.appendChild(transactionItem);
             });
@@ -1737,7 +2100,6 @@
             const row = document.createElement("tr");
             row.className = "hover:bg-gray-50 dark:hover:bg-gray-700";
 
-            // CHANGED: Added logic for 'pending' status
             let statusColor = "";
             let actionBtnText = "";
             let actionBtnColor = "";
@@ -1770,7 +2132,7 @@
                           <button data-user-id="${user._id}" data-action="toggle-status" data-current-status="${user.status}" data-new-status="${newStatus}" class="text-white ${actionBtnColor} px-3 py-1 rounded-full text-xs hover:opacity-80 transition-opacity mr-2">
                               ${actionBtnText}
                           </button>
-                          <button data-user-id="${user._id}" data-action="delete" class="text-white bg-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-700 transition-colors">
+                          <button data-id="${user._id}" data-action="delete-user" class="text-white bg-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-700 transition-colors">
                               Delete
                           </button>
                       </td>
@@ -1778,11 +2140,12 @@
             usersTableBody.appendChild(row);
           });
 
+          // Event listener for user actions
           usersTableBody.addEventListener("click", async (e) => {
             const button = e.target.closest("button");
             if (!button) return;
 
-            const userId = button.dataset.userId;
+            const userId = button.dataset.userId || button.dataset.id;
             const action = button.dataset.action;
 
             if (action === "toggle-status") {
@@ -1796,8 +2159,12 @@
               } else {
                 showNotification(res.data.message, "error");
               }
-            } else if (action === "delete") {
+            } else if (action === "delete-user") {
               showModal("confirm-delete-modal");
+              document.getElementById("confirm-delete-title").textContent =
+                "Confirm User Deletion";
+              document.getElementById("confirm-delete-message").textContent =
+                "Are you sure you want to delete this user? This action cannot be undone.";
               document.getElementById("confirm-delete-btn").onclick =
                 async () => {
                   closeModals();
@@ -1819,12 +2186,14 @@
         }
       }
 
+      // FIX: Implement Biller CRUD logic for Admin
       async function loadManageBillers() {
         const billersTableBody = document.getElementById("billers-table-body");
         billersTableBody.innerHTML =
-          '<tr><td colspan="2" class="text-center py-4">Loading billers...</td></tr>';
+          '<tr><td colspan="3" class="text-center py-4">Loading billers...</td></tr>';
 
-        const res = await apiRequest("/billers", "GET");
+        // Note: Admin API endpoint is /admin/billers
+        const res = await apiRequest("/admin/billers", "GET");
         if (res.ok) {
           billersTableBody.innerHTML = "";
           if (res.data.billers.length > 0) {
@@ -1834,30 +2203,140 @@
               row.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap">${biller.name}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${biller.category}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button data-id="${biller._id}" data-name="${biller.name}" data-category="${biller.category}" data-action="edit-biller" class="text-white bg-indigo-600 px-3 py-1 rounded-full text-xs hover:opacity-80 transition-opacity mr-2">
+                                Edit
+                            </button>
+                            <button data-id="${biller._id}" data-action="delete-biller" class="text-white bg-red-600 px-3 py-1 rounded-full text-xs hover:bg-red-700 transition-colors">
+                                Delete
+                            </button>
+                        </td>
                     `;
               billersTableBody.appendChild(row);
             });
           } else {
-            billersTableBody.innerHTML = `<tr><td colspan="2" class="text-center text-gray-500 py-4">No billers found.</td></tr>`;
+            billersTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-gray-500 py-4">No billers found.</td></tr>`;
           }
         } else {
-          billersTableBody.innerHTML = `<tr><td colspan="2" class="text-center text-red-500 py-4">${res.data.message}</td></tr>`;
+          billersTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-red-500 py-4">${res.data.message}</td></tr>`;
         }
       }
 
-      async function loadAdminDashboardStats() {
-        // No stats to load anymore since reports have been removed.
-        const totalUsers = "N/A";
-        const totalAccounts = "N/A";
-        const transactionsToday = "N/A";
-        const securityAlerts = "N/A";
+      function setupBillerForms() {
+        document.getElementById("add-biller-btn").onclick = () => {
+          currentBillerId = null;
+          document.getElementById("biller-modal-title").textContent =
+            "Create New Biller";
+          document.getElementById("biller-name").value = "";
+          document.getElementById("biller-category").value = "";
+          document.getElementById("biller-submit-btn").textContent =
+            "Create Biller";
+          showModal("biller-crud-modal");
+        };
 
-        document.getElementById("total-users").textContent = totalUsers;
-        document.getElementById("total-accounts").textContent = totalAccounts;
-        document.getElementById("transactions-today").textContent =
-          transactionsToday;
-        document.getElementById("security-alerts").textContent = securityAlerts;
+        const billersTableBody = document.getElementById("billers-table-body");
+        billersTableBody.onclick = (e) => {
+          const button = e.target.closest("button");
+          if (!button) return;
+
+          const billerId = button.dataset.id;
+          const action = button.dataset.action;
+
+          if (action === "edit-biller") {
+            currentBillerId = billerId;
+            document.getElementById("biller-modal-title").textContent =
+              "Edit Biller";
+            document.getElementById("biller-name").value = button.dataset.name;
+            document.getElementById("biller-category").value =
+              button.dataset.category;
+            document.getElementById("biller-submit-btn").textContent =
+              "Save Changes";
+            showModal("biller-crud-modal");
+          } else if (action === "delete-biller") {
+            showModal("confirm-delete-modal");
+            document.getElementById("confirm-delete-title").textContent =
+              "Confirm Biller Deletion";
+            document.getElementById(
+              "confirm-delete-message"
+            ).textContent = `Are you sure you want to delete the biller ID ${billerId.substring(
+              0,
+              6
+            )}...? This action cannot be undone.`;
+            document.getElementById("confirm-delete-btn").onclick =
+              async () => {
+                closeModals();
+                const res = await apiRequest(
+                  `/admin/billers/${billerId}`,
+                  "DELETE"
+                );
+                showNotification(
+                  res.data.message,
+                  res.ok ? "success" : "error"
+                );
+                if (res.ok) {
+                  await loadManageBillers();
+                }
+              };
+          }
+        };
+
+        document.getElementById("biller-crud-form").onsubmit = async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("biller-name").value;
+          const category = document.getElementById("biller-category").value;
+          const body = { name, category };
+
+          let res;
+          if (currentBillerId) {
+            // UPDATE (PUT)
+            res = await apiRequest(
+              `/admin/billers/${currentBillerId}`,
+              "PUT",
+              body
+            );
+          } else {
+            // CREATE (POST)
+            res = await apiRequest("/admin/billers", "POST", body);
+          }
+
+          showNotification(res.data.message, res.ok ? "success" : "error");
+          if (res.ok) {
+            closeModals();
+            await loadManageBillers();
+          }
+        };
       }
+      // END FIX
+
+      // ** FIX: Load admin stats from backend API **
+      async function loadAdminDashboardStats() {
+        document.getElementById("total-users").textContent = "Loading...";
+        document.getElementById("total-accounts").textContent = "Loading...";
+        document.getElementById("transactions-today").textContent =
+          "Loading...";
+        document.getElementById("security-alerts").textContent = "Loading...";
+
+        const res = await apiRequest("/admin/stats", "GET");
+
+        if (res.ok) {
+          document.getElementById("total-users").textContent =
+            res.data.totalUsers;
+          document.getElementById("total-accounts").textContent =
+            res.data.totalAccounts;
+          document.getElementById("transactions-today").textContent =
+            res.data.transactionsToday;
+          document.getElementById("security-alerts").textContent =
+            res.data.securityAlerts;
+        } else {
+          const errorMsg = res.data.message || "Failed to load admin stats";
+          showNotification(errorMsg, "error");
+          document.getElementById("total-users").textContent = "Error";
+          document.getElementById("total-accounts").textContent = "Error";
+          document.getElementById("transactions-today").textContent = "Error";
+          document.getElementById("security-alerts").textContent = "Error";
+        }
+      }
+      // ** End FIX **
 
       async function loadAllTransactions() {
         const transactionsTableBody = document.getElementById(
@@ -1874,10 +2353,12 @@
             res.data.transactions.forEach((tx) => {
               const row = document.createElement("tr");
               row.className = "hover:bg-gray-700";
+              const amountColor =
+                tx.type === "Deposit" ? "text-green-400" : "text-red-400";
 
               row.innerHTML = `
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-200">${
-                    tx._id
+                    tx._id.substring(0, 8) + "..."
                   }</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
                     tx.from_account
@@ -1885,9 +2366,9 @@
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
                     tx.to_account
                   }</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${tx.amount.toFixed(
-                    2
-                  )}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${amountColor}">₹${tx.amount.toFixed(
+                2
+              )}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${
                     tx.type
                   }</td>
@@ -1909,9 +2390,36 @@
         }
       }
 
+      // Function to download CSV report
+      async function downloadCsvReport() {
+        const res = await apiRequest("/admin/reports/transactions.csv", "GET");
+        if (res.ok) {
+          // Note: The actual download happens inside apiRequest due to file type detection
+          showNotification("CSV Report download started.", "success");
+        } else {
+          // Check if the server returned a custom error message
+          const message =
+            res.data && res.data.message
+              ? res.data.message
+              : "Failed to download CSV report. Check backend logs for details.";
+          showNotification(message, "error");
+        }
+      }
+
+      // Function to download PDF report
       async function downloadPdfReport() {
-        // Since reports have been removed, this function is now an empty stub.
-        showNotification("Reports functionality has been removed.", "info");
+        const res = await apiRequest("/admin/reports/transactions.pdf", "GET");
+        if (res.ok) {
+          // Note: The actual download happens inside apiRequest due to file type detection
+          showNotification("PDF Report download started.", "success");
+        } else {
+          // Check if the server returned a custom error message
+          const message =
+            res.data && res.data.message
+              ? res.data.message
+              : "Failed to download PDF report. Check backend logs for details. (Is 'wkhtmltopdf' installed?)";
+          showNotification(message, "error");
+        }
       }
     </script>
   </body>

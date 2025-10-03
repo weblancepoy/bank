@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from bson import ObjectId
 from werkzeug.security import generate_password_hash
 from database import db_instance
@@ -12,8 +12,10 @@ def _get_collections():
     accounts = db_instance.get_collection('accounts')
     billers = db_instance.get_collection('billers')
     # Add a check to log if any collection is not found
-    if not all([transactions is not None, accounts is not None, billers is not None]):
+    if transactions is None or accounts is None or billers is None:
         print("ERROR: A database collection could not be retrieved. Please check MongoDB connection and ensure collections exist.")
+        # Return tuple with None for collections if any are missing
+        return transactions, accounts, billers 
     return transactions, accounts, billers
 
 def _serialize_transaction(tx):
@@ -113,24 +115,21 @@ def record_transaction(account_number, amount, type, description, session=None):
         # Note: This return won't be hit if the caller uses a session correctly.
         return {'message': 'Database connection error'}, 500
     
+    # FIX: Ensure all mandatory fields are present even for single records
+    new_tx = {
+        'from_account': account_number if type == 'Withdrawal' else 'N/A',
+        'to_account': account_number if type == 'Deposit' else 'N/A',
+        'amount': amount,
+        'type': type,
+        'description': description,
+        'timestamp': datetime.utcnow()
+    }
+    
     if session:
-        transactions_collection.insert_one({
-            'from_account': account_number if type == 'Withdrawal' else 'N/A',
-            'to_account': account_number if type == 'Deposit' else 'N/A',
-            'amount': amount,
-            'type': type,
-            'description': description,
-            'timestamp': datetime.utcnow()
-        }, session=session)
+        transactions_collection.insert_one(new_tx, session=session)
     else:
-        transactions_collection.insert_one({
-            'from_account': account_number if type == 'Withdrawal' else 'N/A',
-            'to_account': account_number if type == 'Deposit' else 'N/A',
-            'amount': amount,
-            'type': type,
-            'description': description,
-            'timestamp': datetime.utcnow()
-        })
+        transactions_collection.insert_one(new_tx)
+        
     return {'message': 'Transaction recorded successfully'}, 201
 
 def get_transactions_by_user_id(user_id):
@@ -146,7 +145,55 @@ def get_transactions_by_user_id(user_id):
         '$or': [{'from_account': account['account_number']}, {'to_account': account['account_number']}]
     }).sort('timestamp', -1))
     
-    return {'transactions': [_serialize_transaction(tx) for tx in user_transactions]}, 200
+    # FIX: Ensure serialization is applied to the list of transactions
+    serialized_transactions = [_serialize_transaction(tx) for tx in user_transactions]
+    
+    return {'transactions': serialized_transactions}, 200
+
+def get_all_transactions(start_date=None, end_date=None):
+    """
+    Retrieves all transactions from the database, with optional date filtering.
+    This function is primarily used by the Admin panel and for report generation.
+    """
+    transactions_collection, _, _ = _get_collections()
+    if transactions_collection is None:
+        return {'message': 'Database connection error'}, 500
+
+    query = {}
+    date_filter = {}
+
+    try:
+        if start_date:
+            # Convert start_date string (ISO or YYYY-MM-DD) to datetime object (start of the day)
+            if 'T' in start_date: # Handle ISO format
+                start_dt = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+            else: # Handle YYYY-MM-DD format (set to start of the day UTC)
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d').replace(tzinfo=None)
+            date_filter['$gte'] = start_dt
+
+        if end_date:
+            # Convert end_date string (ISO or YYYY-MM-DD) to datetime object (end of the day)
+            if 'T' in end_date: # Handle ISO format
+                 end_dt = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+            else: # Handle YYYY-MM-DD format (set to end of the day UTC)
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                # Add one day and set time to 00:00:00 to represent the end of the specified day
+                end_dt = (end_dt + timedelta(days=1)).replace(tzinfo=None)
+                date_filter['$lt'] = end_dt 
+
+    except ValueError as e:
+        return {'message': f'Invalid date format provided: {e}'}, 400
+    except Exception as e:
+        print(f"ERROR during date parsing in get_all_transactions: {e}")
+        return {'message': 'An unexpected error occurred during date parsing.'}, 500
+
+    if date_filter:
+        query['timestamp'] = date_filter
+    
+    # Fetch and sort all transactions
+    all_transactions = list(transactions_collection.find(query).sort('timestamp', -1))
+
+    return {'transactions': [_serialize_transaction(tx) for tx in all_transactions]}, 200
 
 def get_spending_insights(user_id):
     """Aggregates spending data by category for a user."""
@@ -157,60 +204,16 @@ def get_spending_insights(user_id):
     account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
     if not account: return {'message': 'Account not found'}, 404
 
+    # We only aggregate transactions where money left the user's account (from_account)
     pipeline = [
         {'$match': {'from_account': account['account_number']}},
         {'$group': {'_id': '$type', 'totalAmount': {'$sum': '$amount'}}},
         {'$sort': {'totalAmount': -1}}
     ]
     results = list(transactions_collection.aggregate(pipeline))
-    return {'labels': [r['_id'] for r in results], 'data': [r['totalAmount'] for r in results]}, 200
-
-def get_all_transactions(start_date=None, end_date=None):
-    """
-    Retrieves all transactions (Admin), with optional date filtering.
     
-    Args:
-        start_date (str): Optional start date for filtering (ISO format).
-        end_date (str): Optional end date for filtering (ISO format).
-    """
-    transactions_collection, _, _ = _get_collections()
-    if transactions_collection is None:
-        return {'message': 'Database connection error'}, 500
-    
-    query = {}
-    if start_date or end_date:
-        query['timestamp'] = {}
-        if start_date:
-            try:
-                query['timestamp']['$gte'] = datetime.fromisoformat(start_date)
-            except ValueError:
-                return {'message': 'Invalid start date format'}, 400
-        if end_date:
-            try:
-                query['timestamp']['$lte'] = datetime.fromisoformat(end_date)
-            except ValueError:
-                return {'message': 'Invalid end date format'}, 400
+    # Format the results for Chart.js
+    labels = [r['_id'] for r in results]
+    data = [r['totalAmount'] for r in results]
 
-    transactions = list(transactions_collection.find(query).sort('timestamp', -1))
-    return {'transactions': [_serialize_transaction(tx) for tx in transactions]}, 200
-
-def update_transaction(tx_id, data):
-    """Updates a transaction's description or type (Admin)."""
-    transactions_collection, _, _ = _get_collections()
-    if transactions_collection is None:
-        return {'message': 'Database connection error'}, 500
-
-    update_data = {k: v for k, v in data.items() if k in ['description', 'type']}
-    if not update_data: return {'message': 'No valid fields to update'}, 400
-
-    result = transactions_collection.update_one({'_id': ObjectId(tx_id)}, {'$set': update_data})
-    return ({'message': 'Transaction updated'}, 200) if result.matched_count else ({'message': 'Transaction not found'}, 404)
-
-def delete_transaction(tx_id):
-    """Deletes a transaction (Admin)."""
-    transactions_collection, _, _ = _get_collections()
-    if transactions_collection is None:
-        return {'message': 'Database connection error'}, 500
-        
-    result = transactions_collection.delete_one({'_id': ObjectId(tx_id)})
-    return ({'message': 'Transaction deleted'}, 200) if result.deleted_count else ({'message': 'Transaction not found'}, 404)
+    return {'labels': labels, 'data': data}, 200

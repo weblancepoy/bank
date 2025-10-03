@@ -53,6 +53,10 @@ def deposit(user_id, amount):
     except (ValueError, TypeError):
         return {'message': 'Invalid amount'}, 400
 
+    account = accounts_collection.find_one({'user_id': ObjectId(user_id)})
+    if not account:
+        return {'message': 'User account not found'}, 404
+
     # These operations are now separate and do not require a session
     accounts_collection.update_one(
         {'user_id': ObjectId(user_id)},
@@ -61,7 +65,7 @@ def deposit(user_id, amount):
 
     # Record transaction separately
     record_transaction(
-        account_number=accounts_collection.find_one({'user_id': ObjectId(user_id)})['account_number'],
+        account_number=account['account_number'],
         amount=amount,
         type='Deposit',
         description='Online Deposit',

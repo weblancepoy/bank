@@ -10,12 +10,15 @@ def _get_users_collection():
     return db_instance.get_collection('users')
 
 def _serialize_user(user):
+    """Converts MongoDB user document to a JSON-serializable format, excluding sensitive data."""
     if user:
         user['_id'] = str(user['_id'])
         user['created_at'] = user['created_at'].isoformat()
         if user.get('last_login'):
             user['last_login'] = user['last_login'].isoformat()
         user.pop('password', None)
+        user.pop('2fa_code', None) # Ensure 2FA code is not leaked
+        user.pop('2fa_code_expires', None) # Ensure 2FA expiry is not leaked
     return user
 
 def create_user(data, created_by_admin=False):
@@ -70,6 +73,10 @@ def get_user_profile(user_id):
     if users_collection is None: 
         return {'message': 'Database error'}, 500
     
+    # Ensure user_id is a valid ObjectId before querying
+    if not ObjectId.is_valid(user_id):
+        return {'message': 'Invalid user ID format'}, 400
+        
     user = users_collection.find_one({'_id': ObjectId(user_id)})
     
     if user:
